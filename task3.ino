@@ -1,7 +1,7 @@
 // Angle-sensing, measurement and display using the
 // Arduino Nano BLE Sense IMU.
 
-// Task 1 | Computing angles with gyro readings
+// Task 3 | Computing angles with gyro readings
 
 #include <stdio.h>
 #include <stdlib.h>

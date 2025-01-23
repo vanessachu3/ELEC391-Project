@@ -1,7 +1,7 @@
 // Angle-sensing, measurement and display using the
 // Arduino Nano BLE Sense IMU.
 
-// Task 1 | Calculate angles using a complementary filter
+// Task 4 | Calculate angles using a complementary filter
 
 #include <stdio.h>
 #include <stdlib.h>
