@@ -12,7 +12,7 @@
 int data = 0;
 char userInput;
 
-float ax, ay, az;           // IMU acceleration variables
+float ax, ay, az;           // IMU acceleration variables   
 
 void setup()
 {
