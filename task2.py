@@ -63,7 +63,7 @@ realTimePlot = AnimationPlot()
 ani = animation.FuncAnimation(fig, realTimePlot.animate, frames=100, fargs=(dataListX,dataListY,dataListZ, serialcom), interval=100) 
 
 plt.show()                                              # Keep Matplotlib plot persistent on screen until it is closed
-ser.close()                                             # Close Serial connection when plot is closed
+serialcom.close()                                             # Close Serial connection when plot is closed
 #def pollData():
 #    while True:
 #        try:
