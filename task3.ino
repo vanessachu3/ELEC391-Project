@@ -12,7 +12,7 @@
 int data = 0;
 char userInput;
 
-float gx, gy, gz;           // IMU gyroscope variables
+float gz;           // IMU gyroscope variables
 
 void setup()
 {
@@ -35,12 +35,8 @@ void setup()
 void loop() {
     if(IMU.gyroscopeAvailable())
     {
-        IMU.readGyroscope(gx, gy, gz);
+        IMU.readGyroscope(gz);
         //Serial.println("Gyroscope readings:");
-        Serial.print(gx);
-        Serial.print('\t');
-        Serial.print(gy);
-        Serial.print('\t');
         Serial.println(gz);
     }
 }

@@ -96,38 +96,6 @@ baud = 115200                   # hard-programmed
 ser = serial.Serial(com, baud)  
 time.sleep(2)                   # arduino serial init 
 
-# while True:
-#     ser.flush()
-#     data = ser.readline().decode('ascii')
-#     # data_processed = data.decode("utf-8").strip('\r\n')
-#     data_processed = re.findall(r"[-+]?\d*\.\d+|\d+", data)
-
-#     ax, ay, az, gx, gy, gz = list(map(float, data_processed))
-
-#     # Add x and y to lists
-#     xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
-
-#     accx.append(ax)
-#     accy.append(ay)
-#     accz.append(az)
-
-#     gyx.append(gx)
-#     gyy.append(gy)
-#     gyz.append(gz)
-
-#     # Limit lists to 20 items
-#     xs = xs[-20:]
-
-#     accx = accx[-20:]
-#     accy = accy[-20:]
-#     accz = accz[-20:]
-
-#     gyx = gyx[-20:]
-#     gyy = gyy[-20:]
-#     gyz = gyz[-20:]
-
-
-
 # Set up plot to call animate() function periodically; might have to change interval increment
 ani = animation.FuncAnimation(fig, animate, fargs=(xs, accx, accy, accz, gyx, gyy, gyz, ser), interval=10)
 plt.show()
