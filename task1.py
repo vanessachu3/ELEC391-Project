@@ -1,52 +1,82 @@
+# Some code to plot the 3D data given by the accelerometer and gyroscope
+# on the Arduino NANO 33 BLE. We assume the data is sent over the COM port
+# in the format: "ax\t ay\t az\t gx\t gy\t gz\t"
+
 import serial
-import numpy as np
+import datetime as dt
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+import matplotlib.animation as animation
 
-# variable declaration
-accelX = []
-ay = []
-az = []
+# Create figure for plotting
+fig, ax = plt.subplots(2)
+xs = []
 
-gx = []
-gy = []
-gz = []
+accx = []
+accy = []
+accz = []
 
-initX = [0]
-initY = [0]
-# open arduino serial port
-arduinoData = serial.Serial('COM3', 115200) # update with com port
+gyx = []
+gyy = []
+gyz = []
 
-#plt.ion() # plot interactive mode
-fig, ax = plt.subplots()
-graph = ax.plot()
+ports = serial.tools.list_ports.comports()
 
-def plotAccel(frame):
-    arduinoString = arduinoData.readline()
-    data = arduinoString.split()
-    accelX.append(float(data[0]))
+if "Arduino Nano 33 BLE" in ports:
+    # extract COM port and assign to 'com' variable
+    com = 14
+    baud = 115200
 
-    ax.set_title('Acceleration Angle Measurement vs. Time')
-    #plt.ylim(-360, 360)
-    ax.set_ylabel('Acceleration Angle Measurement (Hz)')
+ser = serial.Serial(com, baud)    
 
-    ax.set_xlabel('Time (s)')
+# This function is called periodically from FuncAnimation
+def animate(xs, accx, accy, accz, gyx, gyy, gyz):
 
-    ax.plot(accelX, 'b-', label='x-Axis Angle (Hz)')
-    #ax.plot(ay, 'g-', label='y-Axis Angle (Hz)')
-    #ax.plot(az, 'r-', label='z-Axis Angle (Hz)')
+    ser.flush()
+    data = ser.readline()
+    data_processed = data.decode("utf-8").strip('\r\n')
+    ax, ay, az, gx, gy, gz = map(float, data_processed.split())
 
-    #ax.set_legend(loc='upper right')
+    # Add x and y to lists
+    xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
 
-while True:
-    arduinoString = arduinoData.readline()
-    data = arduinoString.split()
-    accelX.append(float(data[0]))
-    ay.append(float(data[1]))
-    az.append(float(data[2]))
+    accx.append(ax)
+    accy.append(ay)
+    accz.append(az)
 
-    ax.clear()
-    plotAccel(accelX)
-    fig.canvas.draw()    
-    #plt.pause(0.25)
-    plt.show()
+    gyx.append(gx)
+    gyy.append(gy)
+    gyz.append(gz)
+
+    # Limit x and y lists to 20 items
+    xs = xs[-20:]
+
+    accx = accx[-20:]
+    accy = accy[-20:]
+    accz = accz[-20:]
+
+    gyx = gyx[-20:]
+    gyy = gyy[-20:]
+    gyz = gyz[-20:]
+
+    # Draw x and other variable lists
+    ax[0].clear()
+    ax[0].plot(xs, accx)
+    ax[0].plot(xs, accy)
+    ax[0].plot(xs, accz)
+
+    ax[1].clear()
+    ax[1].plot(xs, gyx)
+    ax[1].plot(xs, gyy)
+    ax[1].plot(xs, gyz)
+
+    # Format plot ** needs to be changed to reflect 2 plots
+    plt.xticks(rotation=45, ha='right')
+    plt.subplots_adjust(bottom=0.30)
+    plt.title('Accelerometer')
+    plt.ylabel('ms^-2')
+
+# Set up plot to call animate() function periodically
+ani = animation.FuncAnimation(fig, animate, fargs=(xs, accx, accy, accz, gyx, gyy, gyz),
+                               interval=10)
+plt.show()
+plt.close()
