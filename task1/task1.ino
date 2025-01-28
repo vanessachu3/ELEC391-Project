@@ -58,4 +58,5 @@ void loop() {
         Serial.print('\t');
         Serial.println(gz);
     }
+    delay(100);
 }

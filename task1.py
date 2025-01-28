@@ -14,13 +14,13 @@ xs = np.arange(0, 20)
 print(xs)
 print(type(xs))
 
-accx = []
-accy = []
-accz = []
+accx = [0] * 20
+accy = [0] * 20
+accz = [0] * 20
 
-gyx = []
-gyy = []
-gyz = []
+gyx = [0] * 20
+gyy = [0] * 20
+gyz = [0] * 20
 
 # ports = serial.tools.list_ports.comports()
 
