@@ -31,7 +31,7 @@ void setup()
     Serial.println();
 
     Serial.print("Gyroscope Sample Rate: ");
-    Serial.print(IMU.gyroscopeSampleRate());
+    Serial.print(IMU.gyroscopeSampleRate());  
     Serial.println(" Hz");
     Serial.println();
 }
@@ -51,7 +51,7 @@ void loop() {
      if(IMU.gyroscopeAvailable())
     {
         IMU.readGyroscope(gx, gy, gz);
-        Serial.println("Gyroscope readings:");
+        //Serial.println("Gyroscope readings:");
         Serial.print(gx);
         Serial.print('\t');
         Serial.print(gy);

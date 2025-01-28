@@ -6,10 +6,13 @@ import serial
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import numpy as np
 
 # Create figure for plotting
 fig, ax = plt.subplots(2)
-xs = []
+xs = np.arange(0, 20)
+print(xs)
+print(type(xs))
 
 accx = []
 accy = []
@@ -19,27 +22,31 @@ gyx = []
 gyy = []
 gyz = []
 
-ports = serial.tools.list_ports.comports()
+# ports = serial.tools.list_ports.comports()
 
-if "Arduino Nano 33 BLE" in ports:
-    # extract COM port and assign to 'com' variable
-    com = 14
-    baud = 115200
+# if "Arduino Nano 33 BLE" in ports:
+#     # extract COM port and assign to 'com' variable
+#     com = 14
+#     baud = 115200
 
-ser = serial.Serial(com, baud)    
+ser = serial.Serial('COM4', 115200)    
 
 # This function is called periodically from FuncAnimation
-def animate(xs, accx, accy, accz, gyx, gyy, gyz):
-
+def animate(xs, accx, accy, accz, gyx, gyy, gyz, i):
+    print(xs)
     ser.flush()
     data = ser.readline()
     data_processed = data.decode("utf-8").strip('\r\n')
-    ax, ay, az, gx, gy, gz = map(float, data_processed.split())
+    print(data_processed)
+    try:
+        ax1, ay, az, gx, gy, gz = map(float, data_processed.split())
+    except: 
+        pass
 
     # Add x and y to lists
-    xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
+    xs += (xs[len(xs)-1]+1)
 
-    accx.append(ax)
+    accx.append(ax1)
     accy.append(ay)
     accz.append(az)
 
@@ -76,7 +83,6 @@ def animate(xs, accx, accy, accz, gyx, gyy, gyz):
     plt.ylabel('ms^-2')
 
 # Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(fig, animate, fargs=(xs, accx, accy, accz, gyx, gyy, gyz),
-                               interval=10)
+ani = animation.FuncAnimation(fig, animate(xs, accx, accy, accz, gyx, gyy, gyz, 1), save_count=100, interval=10)
 plt.show()
 plt.close()
