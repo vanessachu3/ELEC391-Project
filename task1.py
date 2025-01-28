@@ -2,87 +2,133 @@
 # on the Arduino NANO 33 BLE. We assume the data is sent over the COM port
 # in the format: "ax\t ay\t az\t gx\t gy\t gz\t"
 
+# Task 1 | Data Plotting
+# Group B5
+
 import serial
+import serial.tools.list_ports
 import datetime as dt
+import re
+import time
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import numpy as np
 
-# Create figure for plotting
-fig, ax = plt.subplots(2)
-xs = np.arange(0, 20)
-print(xs)
-print(type(xs))
+def get_COM():
+    ports = serial.tools.list_ports.comports()
 
-accx = [0] * 20
-accy = [0] * 20
-accz = [0] * 20
-
-gyx = [0] * 20
-gyy = [0] * 20
-gyz = [0] * 20
-
-# ports = serial.tools.list_ports.comports()
-
-# if "Arduino Nano 33 BLE" in ports:
-#     # extract COM port and assign to 'com' variable
-#     com = 14
-#     baud = 115200
-
-ser = serial.Serial('COM4', 115200)    
+    for port in ports:
+        if "USB Serial Device" in port.description:
+            return port.device
+    return None  
 
 # This function is called periodically from FuncAnimation
-def animate(xs, accx, accy, accz, gyx, gyy, gyz, i):
-    print(xs)
-    ser.flush()
-    data = ser.readline()
-    data_processed = data.decode("utf-8").strip('\r\n')
-    print(data_processed)
+def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, ser):
+    ser.write(b'g')
+    data = ser.readline().decode('ascii')
+    # data_processed = data.decode("utf-8").strip('\r\n')
+    data_processed = re.findall(r"[-+]?\d*\.\d+|\d+", data)
     try:
-        ax1, ay, az, gx, gy, gz = map(float, data_processed.split())
-    except: 
+        ax, ay, az, gx, gy, gz = list(map(float, data_processed))
+    
+        # Add x and y to lists
+        xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
+
+        accx.append(ax)
+        accy.append(ay)
+        accz.append(az)
+
+        gyx.append(gx)
+        gyy.append(gy)
+        gyz.append(gz)
+
+        # Limit lists to 20 items
+        xs = xs[-20:]
+
+        accx = accx[-20:]
+        accy = accy[-20:]
+        accz = accz[-20:]
+
+        gyx = gyx[-20:]
+        gyy = gyy[-20:]
+        gyz = gyz[-20:]
+
+        # Draw x and other variable lists
+        px[0].clear()
+        px[0].plot(xs, accx)
+        px[0].plot(xs, accy)
+        px[0].plot(xs, accz)
+
+        px[1].clear()
+        px[1].plot(xs, gyx)
+        px[1].plot(xs, gyy)
+        px[1].plot(xs, gyz)
+
+        # Format plot **
+        px[0].set_title("Accelerometer")
+        px[0].legend(loc='upper right')
+        px[0].set_ylabel("ms^-2")
+        px[1].set_title("Gyroscope")
+        px[1].legend(loc='upper right')
+        px[1].set_ylabel("degrees/s")
+        # plt.subplots_adjust()
+        # plt.margins(0.2)
+        plt.xticks(rotation='vertical')
+
+    except:
         pass
 
-    # Add x and y to lists
-    xs += (xs[len(xs)-1]+1)
+# Create figure for plotting
+fig, px = plt.subplots(2, sharex=True)
+# X-Axis
+xs = []
+# Accelerometer values
+accx = []
+accy = []
+accz = []
+# Gyroscope values
+gyx = []
+gyy = []
+gyz = []
 
-    accx.append(ax1)
-    accy.append(ay)
-    accz.append(az)
+com = get_COM()
+baud = 115200                   # hard-programmed
 
-    gyx.append(gx)
-    gyy.append(gy)
-    gyz.append(gz)
+ser = serial.Serial(com, baud)  
+time.sleep(2)                   # arduino serial init 
 
-    # Limit x and y lists to 20 items
-    xs = xs[-20:]
+# while True:
+#     ser.flush()
+#     data = ser.readline().decode('ascii')
+#     # data_processed = data.decode("utf-8").strip('\r\n')
+#     data_processed = re.findall(r"[-+]?\d*\.\d+|\d+", data)
 
-    accx = accx[-20:]
-    accy = accy[-20:]
-    accz = accz[-20:]
+#     ax, ay, az, gx, gy, gz = list(map(float, data_processed))
 
-    gyx = gyx[-20:]
-    gyy = gyy[-20:]
-    gyz = gyz[-20:]
+#     # Add x and y to lists
+#     xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
 
-    # Draw x and other variable lists
-    ax[0].clear()
-    ax[0].plot(xs, accx)
-    ax[0].plot(xs, accy)
-    ax[0].plot(xs, accz)
+#     accx.append(ax)
+#     accy.append(ay)
+#     accz.append(az)
 
-    ax[1].clear()
-    ax[1].plot(xs, gyx)
-    ax[1].plot(xs, gyy)
-    ax[1].plot(xs, gyz)
+#     gyx.append(gx)
+#     gyy.append(gy)
+#     gyz.append(gz)
 
-    # Format plot ** needs to be changed to reflect 2 plots
-    plt.xticks(rotation=45, ha='right')
-    plt.subplots_adjust(bottom=0.30)
-    plt.title('Accelerometer')
-    plt.ylabel('ms^-2')
+#     # Limit lists to 20 items
+#     xs = xs[-20:]
 
-# Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(fig, animate(xs, accx, accy, accz, gyx, gyy, gyz, 1), save_count=100, interval=10)
+#     accx = accx[-20:]
+#     accy = accy[-20:]
+#     accz = accz[-20:]
+
+#     gyx = gyx[-20:]
+#     gyy = gyy[-20:]
+#     gyz = gyz[-20:]
+
+
+
+# Set up plot to call animate() function periodically; might have to change interval increment
+ani = animation.FuncAnimation(fig, animate, fargs=(xs, accx, accy, accz, gyx, gyy, gyz, ser), interval=10)
 plt.show()
 plt.close()
