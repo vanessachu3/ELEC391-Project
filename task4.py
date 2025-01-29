@@ -2,7 +2,7 @@
 # on the Arduino NANO 33 BLE. We assume the data is sent over the COM port
 # in the format: "ax\t ay\t az\t gx\t gy\t gz\t"
 
-# Task 2 | Computing angles with accelerometer readings
+# Task 4 | Complementary filter 
 # Group B5
 
 import serial
@@ -31,12 +31,9 @@ def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, theta, ser):
     data_processed = re.findall(r"[-+]?\d*\.\d+|\d+", data)
     try:
         ax, ay, az, gx, gy, gz, ghz = list(map(float, data_processed))
-        angle = math.atan(ay/az)*180/np.pi
-        # if ay == 0:
-        #     angle = 0
-        # else:
-        #     angle = math.atan(ax/ay)*180/np.pi      # returns degrees
-    
+
+        k = 0.8
+
         # Add x and y to lists
         xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
 
@@ -48,7 +45,14 @@ def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, theta, ser):
         gyy.append(gy)
         gyz.append(gz)
 
-        theta.append(angle)
+        ta = math.atan(ay/az)*180/np.pi
+        
+
+        if len(theta) <= 1:
+            theta.append(ta)
+        else:
+            tg = 0+gx*1/ghz
+            theta.append(k*(theta[-1]+tg) + (1-k)*ta)
 
         # Limit lists to 20 items
         xs = xs[-20:]
@@ -67,9 +71,9 @@ def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, theta, ser):
 
         # Draw x and other variable lists
         px[0].clear()
-        px[0].plot(xs, accx, label='X')
-        px[0].plot(xs, accy, label='Y')
-        px[0].plot(xs, accz, label='Z')
+        px[0].plot(xs, accx)
+        px[0].plot(xs, accy)
+        px[0].plot(xs, accz)
 
         px[1].clear()
         px[1].plot(xs, theta)

@@ -2,7 +2,7 @@
 # on the Arduino NANO 33 BLE. We assume the data is sent over the COM port
 # in the format: "ax\t ay\t az\t gx\t gy\t gz\t"
 
-# Task 2 | Computing angles with accelerometer readings
+# Task 3 | Computing angles with gyroscope readings
 # Group B5
 
 import serial
@@ -31,12 +31,7 @@ def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, theta, ser):
     data_processed = re.findall(r"[-+]?\d*\.\d+|\d+", data)
     try:
         ax, ay, az, gx, gy, gz, ghz = list(map(float, data_processed))
-        angle = math.atan(ay/az)*180/np.pi
-        # if ay == 0:
-        #     angle = 0
-        # else:
-        #     angle = math.atan(ax/ay)*180/np.pi      # returns degrees
-    
+
         # Add x and y to lists
         xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
 
@@ -48,7 +43,10 @@ def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, theta, ser):
         gyy.append(gy)
         gyz.append(gz)
 
-        theta.append(angle)
+        if len(theta) <= 1:
+            theta.append(0+gx*1/ghz)
+        else:
+            theta.append(theta[-1]+gx*1/ghz)
 
         # Limit lists to 20 items
         xs = xs[-20:]
@@ -67,17 +65,17 @@ def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, theta, ser):
 
         # Draw x and other variable lists
         px[0].clear()
-        px[0].plot(xs, accx, label='X')
-        px[0].plot(xs, accy, label='Y')
-        px[0].plot(xs, accz, label='Z')
+        px[0].plot(xs, gyx, label='X')
+        px[0].plot(xs, gyy, label='Y')
+        px[0].plot(xs, gyz, label='Z')
 
         px[1].clear()
         px[1].plot(xs, theta)
 
         # Format plot **
-        px[0].set_title("Accelerometer")
+        px[0].set_title("Gyroscope")
         px[0].legend(loc='upper right')
-        px[0].set_ylabel("ms^-2")
+        px[0].set_ylabel("degrees/s")
         px[1].set_title("Angle")
         px[1].legend(loc='upper right')
         px[1].set_ylabel("degrees")
@@ -111,6 +109,6 @@ ser = serial.Serial(com, baud)
 time.sleep(2)                   # arduino serial init 
 
 # Set up plot to call animate() function periodically; might have to change interval increment
-ani = animation.FuncAnimation(fig, animate, fargs=(xs, accx, accy, accz, gyx, gyy, gyz, theta, ser), interval=10)
+ani = animation.FuncAnimation(fig, animate, fargs=(xs, accx, accy, accz, gyx, gyy, gyz, theta, ser), interval=0.1)
 plt.show()
 plt.close()
