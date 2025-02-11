@@ -1,9 +1,8 @@
 # Some code to plot the 3D data given by the accelerometer and gyroscope
 # on the Arduino NANO 33 BLE. We assume the data is sent over the COM port
-# in the format: "ax\t ay\t az\t gx\t gy\t gz\t"
+# in the format: "accelerometer_angle gyroscope_angle current_angle"
 
-# Task 1 | Data Plotting
-# Group B5
+# Task 4 | Plot Filtered Data
 
 import serial
 import serial.tools.list_ports
@@ -22,81 +21,72 @@ def get_COM():
     return None  
 
 # This function is called periodically from FuncAnimation
-def animate(i, xs, accx, accy, accz, gyx, gyy, gyz, ser):
-    ser.write(b'g')
+def animate(i, xs, accAngle, gyrAngle, currAngle, ser):
+    ser.flushInput()
     data = ser.readline().decode('ascii')
     # data_processed = data.decode("utf-8").strip('\r\n')
     data_processed = re.findall(r"[-+]?\d*\.\d+|\d+", data)
     try:
-        ax, ay, az, gx, gy, gz = list(map(float, data_processed))
+        acc, gyr, curr = list(map(float, data_processed))
+
+        print("%s\t%s\t%s" % (acc, gyr, curr))
     
         # Add x and y to lists
         xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
 
-        accx.append(ax)
-        accy.append(ay)
-        accz.append(az)
-
-        gyx.append(gx)
-        gyy.append(gy)
-        gyz.append(gz)
+        accAngle.append(acc)
+        gyrAngle.append(gyr)
+        currAngle.append(curr)
 
         # Limit lists to 20 items
         xs = xs[-20:]
-
-        accx = accx[-20:]
-        accy = accy[-20:]
-        accz = accz[-20:]
-
-        gyx = gyx[-20:]
-        gyy = gyy[-20:]
-        gyz = gyz[-20:]
+        accAngle = accAngle[-20:]
+        gyrAngle = gyrAngle[-20:]
+        currAngle = currAngle[-20:]
 
         # Draw x and other variable lists
         px[0].clear()
-        px[0].plot(xs, accx)
-        px[0].plot(xs, accy)
-        px[0].plot(xs, accz)
+        px[0].plot(xs, accAngle)
 
         px[1].clear()
-        px[1].plot(xs, gyx)
-        px[1].plot(xs, gyy)
-        px[1].plot(xs, gyz)
+        px[1].plot(xs, gyrAngle)
+
+        px[2].clear()
+        px[2].plot(xs, currAngle)
 
         # Format plot **
-        px[0].set_title("Accelerometer")
-        px[0].legend(loc='upper right')
-        px[0].set_ylabel("ms^-2")
-        px[1].set_title("Gyroscope")
-        px[1].legend(loc='upper right')
-        px[1].set_ylabel("degrees/s")
-        # plt.subplots_adjust()
+        px[0].set_title("Accelerometer Angle")
+        # px[0].legend(loc='upper right')
+        px[0].set_ylabel("degrees")
+        px[0].set_ylim([-100,100])
+        px[1].set_title("Gyroscope Angle")
+        # px[1].legend(loc='upper right')
+        px[1].set_ylabel("degrees")
+        px[1].set_ylim([-100,100])
+        px[2].set_title("Filtered Angle")
+        px[2].set_ylabel("degrees")
+        px[2].set_ylim([-100,100])
         # plt.margins(0.2)
         plt.xticks(rotation='vertical')
-
     except:
         pass
 
 # Create figure for plotting
-fig, px = plt.subplots(2, sharex=True)
-# X-Axis
+fig, px = plt.subplots(3, sharex=True)
+# variable arrays
 xs = []
-# Accelerometer values
-accx = []
-accy = []
-accz = []
-# Gyroscope values
-gyx = []
-gyy = []
-gyz = []
+accAngle = []
+gyrAngle = []
+currAngle = []
 
 com = get_COM()
 baud = 115200                   # hard-programmed
 
 ser = serial.Serial(com, baud)  
-time.sleep(2)                   # arduino serial init 
+time.sleep(2)                   # arduino serial init time
 
 # Set up plot to call animate() function periodically; might have to change interval increment
-ani = animation.FuncAnimation(fig, animate, fargs=(xs, accx, accy, accz, gyx, gyy, gyz, ser), interval=10)
+ani = animation.FuncAnimation(fig, animate, fargs=(xs, accAngle, gyrAngle, currAngle, ser), interval=10)
 plt.show()
 plt.close()
+ser.close()
