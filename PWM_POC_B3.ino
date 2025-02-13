@@ -7,7 +7,10 @@
 
 #define MAXPWM 255
 #define BAUD 115200
-
+#define PCT25 0.25
+#define PCT50 0.50
+#define PCT75 0.75
+#define WAITTIME 10
 // % valuaes of max PWM
 // float dutyCycleA0  = 1.0;
 // float dutyCycleA1   = 0.75;
@@ -46,7 +49,11 @@ void setup() {
 void loop() {
   // PWM Outputs
   //PWMOutput();
-    // check for IMU acceleration and gyroscope
+
+  task1();
+  task2();
+  task3();
+  // check for IMU acceleration and gyroscope
   if(IMU.accelerationAvailable() && IMU.gyroscopeAvailable())
   {
     IMU.readAcceleration(ax, ay, az);
@@ -82,6 +89,8 @@ void loop() {
   }
 
 }
+
+
 
 void PWMfwrd(float scaleFactor) {
   
