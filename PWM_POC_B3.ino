@@ -11,11 +11,6 @@
 #define PCT50 0.50
 #define PCT75 0.75
 #define WAITTIME 10
-// % valuaes of max PWM
-// float dutyCycleA0  = 1.0;
-// float dutyCycleA1   = 0.75;
-// float dutyCycleA2   = 0.5;
-// float dutyCycleA3   = 0.25;
 
 float ax, ay, az, gx, gy, gz;                           // IMU acceleration | IMU gyroscope
 float accAngle, gyrAngle = 0, currAngle, prevAngle = 0; // initialize accAngle and gyrAngle
@@ -49,10 +44,6 @@ void setup() {
 void loop() {
   // PWM Outputs
   //PWMOutput();
-
-  task1();
-  task2();
-  task3();
   // check for IMU acceleration and gyroscope
   if(IMU.accelerationAvailable() && IMU.gyroscopeAvailable())
   {
@@ -76,6 +67,12 @@ void loop() {
     Serial.println(currAngle);
   }
   
+  if (currAngle >=-1 && currAngle <=1)
+  {
+    PWMfwrd(0)
+  }
+  else
+  {
   //if angle negative - drive backwards
   if (currAngle < 0)
   {
@@ -86,7 +83,7 @@ void loop() {
   else 
   {
     PWMfwrd(currAngle/30 * 1);
-  }
+  }}
 
 }
 
