@@ -11,6 +11,10 @@
 #define PCT50 0.50
 #define PCT75 0.75
 #define WAITTIME 10
+#define LEFTWHEEL_FWRD    A0
+#define LEFTWHEEL_BKWRD   A1
+#define RIGHTWHEEL_FWRD   A2
+#define RIGHTWHEEL_BKWRD  A3
 
 float ax, ay, az, gx, gy, gz;                           // IMU acceleration | IMU gyroscope
 float accAngle, gyrAngle = 0, currAngle, prevAngle = 0; // initialize accAngle and gyrAngle
@@ -24,11 +28,11 @@ void PWMbkwrd(float scaleFactor);
 
 void setup() {
 
-  pinMode(A0, OUTPUT); 
-  pinMode(A1,  OUTPUT);
+  pinMode(LEFTWHEEL_FWRD, OUTPUT); 
+  pinMode(LEFTWHEEL_BKWRD,  OUTPUT);
                                                                                                                                             
-  pinMode(A2,  OUTPUT);
-  pinMode(A3,  OUTPUT);
+  pinMode(RIGHTWHEEL_FWRD,  OUTPUT);
+  pinMode(RIGHTWHEEL_BKWRD,  OUTPUT);
 
   Serial.begin(BAUD);
   if(!IMU.begin())                                    // IMU initialization
@@ -94,43 +98,43 @@ void PWMfwrd(float scaleFactor) {
   if (scaleFactor >=1)
   {
     //Left motor
-    analogWrite(A0,  MAXPWM);
-    analogWrite(A1,   0);
+    analogWrite(LEFTWHEEL_FWRD,  MAXPWM);
+    analogWrite(LEFTWHEEL_BKWRD,   0);
 
     //Right Motor
-    analogWrite(A2,   MAXPWM);
-    analogWrite(A3,   0);
+    analogWrite(RIGHTWHEEL_FWRD,   MAXPWM);
+    analogWrite(RIGHTWHEEL_BKWRD,   0);
   }
   else
   {
     //Left Motor
-    analogWrite(A0,  MAXPWM*scaleFactor);
-    analogWrite(A1,   0);
+    analogWrite(LEFTWHEEL_FWRD,  MAXPWM*scaleFactor);
+    analogWrite(LEFTWHEEL_BKWRD,   0);
 
     //Right Motor
-    analogWrite(A2,   MAXPWM*scaleFactor);
-    analogWrite(A3,   0);}
+    analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*scaleFactor);
+    analogWrite(RIGHTWHEEL_BKWRD,   0);}
 }
 
 void PWMbkwrd(float scaleFactor) {
   if (scaleFactor >=1)
   {
     //Left motor
-    analogWrite(A0,  0);
-    analogWrite(A1,   MAXPWM);
+    analogWrite(LEFTWHEEL_FWRD,  0);
+    analogWrite(LEFTWHEEL_BKWRD,   MAXPWM);
 
     //Right motor
-    analogWrite(A2,   0);
-    analogWrite(A3,   MAXPWM);
+    analogWrite(RIGHTWHEEL_FWRD,   0);
+    analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM);
   }
   else{
     //Left motor
-    analogWrite(A0,  0);
-    analogWrite(A1,   MAXPWM*scaleFactor);
+    analogWrite(LEFTWHEEL_FWRD,  0);
+    analogWrite(LEFTWHEEL_BKWRD,   MAXPWM*scaleFactor);
 
     //Right motor
-    analogWrite(A2,   0);
-    analogWrite(A3,   MAXPWM*scaleFactor);
+    analogWrite(RIGHTWHEEL_FWRD,   0);
+    analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM*scaleFactor);
   }
 
 }

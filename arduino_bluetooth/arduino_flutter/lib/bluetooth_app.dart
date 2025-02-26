@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_joystick/flutter_joystick.dart'; // Make sure you have this package imported
+import 'dart:math';
 
-// define UUIDs as constants - these should match the Arduino code
+// Define UUIDs as constants
 const String serviceUUID = "00000000-5EC4-4083-81CD-A10B8D5CF6EC";
 const String characteristicUUID = "00000001-5EC4-4083-81CD-A10B8D5CF6EC";
 
@@ -19,29 +21,25 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final _ble = FlutterReactiveBle();
 
-  StreamSubscription<DiscoveredDevice>?
-      _scanSub; // subscribe to bluetooth scanning stream
-  StreamSubscription<ConnectionStateUpdate>?
-      _connectSub; // subscribe to bluetooth connection stream
+  StreamSubscription<DiscoveredDevice>? _scanSub;
+  StreamSubscription<ConnectionStateUpdate>? _connectSub;
   StreamSubscription<List<int>>? _notifySub;
 
   List<DiscoveredDevice> _devices = [];
-  String? _selectedDeviceId; // will hold the device ID selected for connection
-  String?
-      _selectedDeviceName; // will hold the device name selected for connection
-  var _stateMessage = 'Scanning...'; // displays app status
+  String? _selectedDeviceId;
+  String? _selectedDeviceName;
+  var _stateMessage = 'Scanning...';
+
   QualifiedCharacteristic? _writeCharacteristic;
 
-  bool _isConnected = false; // flag to indicate connection
+  bool _isConnected = false;
 
-  // on initialization scan for devices
   @override
   void initState() {
     super.initState();
     _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate);
   }
 
-  // when terminating cancel all the subscriptions
   @override
   void dispose() {
     _notifySub?.cancel();
@@ -50,17 +48,14 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  // update devices that found with "BLE" in their name
   void _onScanUpdate(DiscoveredDevice d) {
-    if (d.name.contains("BLE") &&
-        !_devices.any((device) => device.id == d.id)) {
+    if (d.name.contains("BLE") && !_devices.any((device) => device.id == d.id)) {
       setState(() {
         _devices.add(d);
       });
     }
   }
 
-  // Connect to the devices that was selected by user
   void _connectToDevice() {
     if (_selectedDeviceId != null) {
       setState(() {
@@ -86,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Handle disconnection
   void _disconnectFromDevice() {
     try {
       if (_notifySub != null) {
@@ -114,8 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onConnected(String deviceId) {
     final characteristic = QualifiedCharacteristic(
       deviceId: deviceId,
-      serviceId: Uuid.parse(serviceUUID), // Use the constant here
-      characteristicId: Uuid.parse(characteristicUUID), // Use the constant here
+      serviceId: Uuid.parse(serviceUUID),
+      characteristicId: Uuid.parse(characteristicUUID),
     );
 
     _writeCharacteristic = characteristic;
@@ -202,58 +196,97 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Joystick Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed:
-                          _isConnected ? () => _sendCommand('FORWARD') : null,
-                      child: const Icon(Icons.arrow_upward),
+                // Joystick Widget
+                Container(
+                  width: 200, // Add width for joystick visibility
+                  height: 200, // Add height for joystick visibility
+                  child: Joystick(
+                    base: JoystickBase(
+                      decoration: JoystickBaseDecoration(
+                        color: Colors.black,
+                        drawOuterCircle: false,
+                      ),
+                      arrowsDecoration: JoystickArrowsDecoration(
+                        color: Colors.blue,
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed:
-                          _isConnected ? () => _sendCommand('FORWARD') : null,
-                      child: const Icon(Icons.arrow_back),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed:
-                          _isConnected ? () => _sendCommand('FORWARD') : null,
-                      child: const Icon(Icons.arrow_downward),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed:
-                          _isConnected ? () => _sendCommand('FORWARD') : null,
-                      child: const Icon(Icons.arrow_forward),
-                    ),
-                  ],
+                    listener: (details) {
+                      double x = details.x;
+                      double y = details.y;
+                      double distance = sqrt(x * x + y * y);
+
+                      // Calculate the angle (degrees) from the joystick's X and Y positions
+                      double degrees = (180 / 3.14159265359) * (atan2(y, x)); // Convert from radians to degrees
+                      // Normalize degrees to the range [0, 360] (clockwise system starting from North)
+                      degrees = (degrees + 90) % 360;
+
+                      // Ensure the joystick moves a certain distance before triggering commands
+                      if (distance > 0.5) {
+                            // Define ranges for directions
+                            if (degrees >= 0 && degrees < 10) {
+                              _sendCommand('FORWARD');
+                              print('FORWARD');
+                            } else if (degrees >= 10 && degrees < 80) {
+                              _sendCommand('FORWARD RIGHT');
+                              print('FORWARD RIGHT');
+                            } else if (degrees >= 80 && degrees < 100) {
+                              _sendCommand('RIGHT');
+                              print('RIGHT');
+                            } else if (degrees >= 100 && degrees < 170) {
+                              _sendCommand('BACKWARDS RIGHT');
+                              print('BACKWARDS RIGHT');
+                            } else if (degrees >= 170 && degrees < 190) {
+                              _sendCommand('BACKWARDS');
+                              print('BACKWARDS');
+                            } else if (degrees >= 190 && degrees < 260) {
+                              _sendCommand('BACKWARDS LEFT');
+                              print('BACKWARDS LEFT');
+                            } else if (degrees >= 260 && degrees < 280) {
+                              _sendCommand('LEFT');
+                              print('LEFT');
+                            } 
+                            else if (degrees >= 280 && degrees < 350) {
+                              _sendCommand('FORWARD LEFT');
+                              print('FORWARD LEFT');
+                            } else {
+                              _sendCommand('FORWARD'); // For 350 -> 10 degrees
+                              print('FORWARD'); // For 350 -> 10 degrees
+                            }
+                        //print("Joystick position: x = $x, y = $y, angle = $degrees");
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(height: 20),
-
+                // **************** other buttons ****************
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('A') : null,
-                      child: const Text('Send A'),
+                      onPressed: _isConnected ? () => _sendCommand('LEFT SIGNAL') : null,
+                      child: const Icon(
+                        Icons.arrow_left,
+                        color: Color(0xFFB8860B),
+                        size: 40,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('A') : null,
-                      child: const Text('Send A'),
+                      onPressed: _isConnected ? () => _sendCommand('HAZARD') : null,
+                      child: const Icon(
+                        Icons.warning_amber,
+                        color: Colors.red,
+                        size: 40,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('A') : null,
-                      child: const Text('Send A'),
+                      onPressed: _isConnected ? () => _sendCommand('RIGHT SIGNAL') : null,
+                      child: const Icon(
+                        Icons.arrow_right,
+                        color: Color(0xFFB8860B),
+                        size: 40,
+                      ),
                     ),
                   ],
                 ),

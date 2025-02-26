@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoBLE.h>
+#include <PWM.h>
 
 #define BUFFER_SIZE 20
 
@@ -34,6 +35,7 @@ void setup() {
   customCharacteristic.writeValue("Waiting for data");
 
   // Start advertising the service
+  //BLE.setAdvertisingInterval(20);
   BLE.advertise();
 
   Serial.println("Bluetooth® device active, waiting for connections...");
@@ -66,7 +68,30 @@ void loop() {
         // Print the received data to the Serial Monitor
         Serial.print("Received data: ");
         Serial.println(receivedString);
-
+        if (strcmp(receivedString, "FORWARD") == 0) {
+          PWMfwrd(1.0);  // Move forward at full speed
+        } 
+        else if (strcmp(receivedString, "BACKWARDS") == 0) {
+          PWMbkwrd(1.0);  // Move backward at full speed
+        }
+        else if (strcmp(receivedString, "LEFT") == 0) {
+          PWMleft(1.0);  // Turn left
+        }
+        else if (strcmp(receivedString, "RIGHT") == 0) {
+          PWMright(1.0);  // Turn right
+        }
+        else if (strcmp(receivedString, "FORWARD LEFT") == 0) {
+          PWMfwrdLeft(1.0);  // fwrd left
+        } 
+        else if (strcmp(receivedString, "FORWARD RIGHT") == 0) {
+          PWMfwrdRight(1.0);  // fwrd right
+        }
+        else if (strcmp(receivedString, "BACKWARDS LEFT") == 0) {
+          PWMbkwrdLeft(1.0);  // bkwrd left
+        }
+        else if (strcmp(receivedString, "BACKWARDS RIGHT") == 0) {
+          PWMbkwrdRight(1.0);  // bkwrd right
+        }
 
         // Optionally, respond by updating the characteristic's value
         customCharacteristic.writeValue("Data received");

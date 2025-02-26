@@ -11,7 +11,10 @@
 #define PCT50 0.50
 #define PCT75 0.75
 #define WAITTIME 10
-
+#define LEFTWHEEL_FWRD    A0
+#define LEFTWHEEL_BKWRD   A1
+#define RIGHTWHEEL_FWRD   A2
+#define RIGHTWHEEL_BKWRD  A3
 
 void PWMfwrd(float scaleFactor);
 void PWMbkwrd(float scaleFactor);
@@ -21,11 +24,11 @@ unsigned long secToMs(unsigned long sec);
 
 void setup() {
 
-  pinMode(A0, OUTPUT); 
-  pinMode(A1,  OUTPUT);
+  pinMode(LEFTWHEEL_FWRD, OUTPUT); 
+  pinMode(LEFTWHEEL_BKWRD,  OUTPUT);
                                                                                                                                             
-  pinMode(A2,  OUTPUT);
-  pinMode(A3,  OUTPUT);
+  pinMode(RIGHTWHEEL_FWRD,  OUTPUT);
+  pinMode(RIGHTWHEEL_BKWRD,  OUTPUT);
   
 }
 
@@ -49,49 +52,49 @@ void task1() {
   // FORWARD ///
   //////////////
   //Left motor - 25%
-  analogWrite(A0,  MAXPWM*PCT25);
-  analogWrite(A1,   0);
+  analogWrite(LEFTWHEEL_FWRD,  MAXPWM*PCT25);
+  analogWrite(LEFTWHEEL_BKWRD,   0);
   //Right Motor
-  analogWrite(A2,   MAXPWM*PCT25);
-  analogWrite(A3,   0);
+  analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*PCT25);
+  analogWrite(RIGHTWHEEL_BKWRD,   0);
   delay(secToMs(WAITTIME));
   //Left motor
-  analogWrite(A0,  MAXPWM*PCT50);
-  analogWrite(A1,   0);
+  analogWrite(LEFTWHEEL_FWRD,  MAXPWM*PCT50);
+  analogWrite(LEFTWHEEL_BKWRD,   0);
   //Right Motor
-  analogWrite(A2,   MAXPWM*PCT50);
-  analogWrite(A3,   0);
+  analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*PCT50);
+  analogWrite(RIGHTWHEEL_BKWRD,   0);
   delay(secToMs(WAITTIME));
   //Left motor
-  analogWrite(A0,  MAXPWM*PCT75);
-  analogWrite(A1,   0);
+  analogWrite(LEFTWHEEL_FWRD,  MAXPWM*PCT75);
+  analogWrite(LEFTWHEEL_BKWRD,   0);
   //Right Motor
-  analogWrite(A2,   MAXPWM*PCT75);
-  analogWrite(A3,   0);
+  analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*PCT75);
+  analogWrite(RIGHTWHEEL_BKWRD,   0);
   delay(secToMs(WAITTIME));
   //Left motor
-  analogWrite(A0,  MAXPWM);
-  analogWrite(A1,   0);
+  analogWrite(LEFTWHEEL_FWRD,  MAXPWM);
+  analogWrite(LEFTWHEEL_BKWRD,   0);
   //Right Motor
-  analogWrite(A2,   MAXPWM);
-  analogWrite(A3,   0);
+  analogWrite(RIGHTWHEEL_FWRD,   MAXPWM);
+  analogWrite(RIGHTWHEEL_BKWRD,   0);
   delay(secToMs(WAITTIME));
 
   //////////////
   // BACKWARD //
   //////////////
-  analogWrite(A0,  0);
-  analogWrite(A1,   MAXPWM*PCT25);
+  analogWrite(LEFTWHEEL_FWRD,  0);
+  analogWrite(LEFTWHEEL_BKWRD,   MAXPWM*PCT25);
   //Right Motor
-  analogWrite(A2,   0);
-  analogWrite(A3,   MAXPWM*PCT25);
+  analogWrite(RIGHTWHEEL_FWRD,   0);
+  analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM*PCT25);
   delay(secToMs(WAITTIME));
   //Left motor
-  analogWrite(A0,  0);
-  analogWrite(A1,   MAXPWM*PCT75);
+  analogWrite(LEFTWHEEL_FWRD,  0);
+  analogWrite(LEFTWHEEL_BKWRD,   MAXPWM*PCT75);
   //Right Motor
-  analogWrite(A2,   0);
-  analogWrite(A3,   MAXPWM*PCT75);
+  analogWrite(RIGHTWHEEL_FWRD,   0);
+  analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM*PCT75);
   delay(secToMs(WAITTIME));
 
 }
@@ -99,34 +102,34 @@ void task1() {
 void task2() {
   // TASK 2 - 25%, 75% Both opposite dirn
   //Left motor - 25% - forward
-  analogWrite(A0,  MAXPWM*PCT25);
-  analogWrite(A1,   0);
+  analogWrite(LEFTWHEEL_FWRD,  MAXPWM*PCT25);
+  analogWrite(LEFTWHEEL_BKWRD,   0);
   //Right motor - 25% - backwards
-  analogWrite(A2,   0);
-  analogWrite(A3,   MAXPWM*PCT25);
+  analogWrite(RIGHTWHEEL_FWRD,   0);
+  analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM*PCT25);
   delay(secToMs(WAITTIME));
 
   //Left motor - 25% - backwards
-  analogWrite(A0,  0);
-  analogWrite(A1,   MAXPWM*PCT25);
+  analogWrite(LEFTWHEEL_FWRD,  0);
+  analogWrite(LEFTWHEEL_BKWRD,   MAXPWM*PCT25);
   //Right motor - 25% - forwards
-  analogWrite(A2,   MAXPWM*PCT25);
-  analogWrite(A3,   0);
+  analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*PCT25);
+  analogWrite(RIGHTWHEEL_BKWRD,   0);
   delay(secToMs(WAITTIME));
 
   //Left motor - 75%  - forward
-  analogWrite(A0,  MAXPWM*PCT75);
-  analogWrite(A1,   0);
+  analogWrite(LEFTWHEEL_FWRD,  MAXPWM*PCT75);
+  analogWrite(LEFTWHEEL_BKWRD,   0);
   //Right motor - 75% - backwards
-  analogWrite(A2,   0);
-  analogWrite(A3,   MAXPWM*PCT75);
+  analogWrite(RIGHTWHEEL_FWRD,   0);
+  analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM*PCT75);
   delay(secToMs(WAITTIME));
 
   //Left motor - 75%  - forward
-  analogWrite(A0,  0);
-  analogWrite(A1,   MAXPWM*PCT75);
+  analogWrite(LEFTWHEEL_FWRD,  0);
+  analogWrite(LEFTWHEEL_BKWRD,   MAXPWM*PCT75);
   //Right motor - 75% - backwards
-  analogWrite(A2,   MAXPWM*PCT75);
-  analogWrite(A3,   0);
+  analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*PCT75);
+  analogWrite(RIGHTWHEEL_BKWRD,   0);
   delay(secToMs(WAITTIME));
 }
