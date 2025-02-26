@@ -16,7 +16,7 @@ void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd)
 }
 
 void moveRobot(const char* direction, float scaleFactor) {
-    scaleFactor = (scaleFactor >= 1) ? 1.0 : scaleFactor; // Clamp scaleFactor to 1.0 max
+    scaleFactor = (scaleFactor >= 1) ? 1.0 : scaleFactor; // Restrict scaleFactor to 1.0 max
 
     if (strcmp(direction, "FORWARD") == 0) {
         setMotorPWM(scaleFactor, 0, scaleFactor, 0);
