@@ -1,17 +1,15 @@
 #ifndef PWM_H
 #define PWM_H
 
-// Define constants (same as in PWM.cpp)
-#define MAXPWM 255
+#include <Arduino.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "Arduino_BMI270_BMM150.h"
+
 
 // Function prototypes for PWM control
-void PWMfwrd(float scaleFactor);
-void PWMbkwrd(float scaleFactor);
-void PWMleft(float scaleFactor);
-void PWMright(float scaleFactor);
-void PWMfwrdLeft(float scaleFactor);
-void PWMfwrdRight(float scaleFactor);
-void PWMbkwrdLeft(float scaleFactor);
-void PWMbkwrdRight(float scaleFactor);
+void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd);
+void moveRobot(const char* direction, float scaleFactor);
 
 #endif

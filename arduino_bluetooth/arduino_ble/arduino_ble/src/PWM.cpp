@@ -1,11 +1,4 @@
-// Rx button commands then execute appropriate motions
-
-#include <Arduino.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "Arduino_BMI270_BMM150.h"
-
+#include <PWM.h>
 
 #define MAXPWM 255
 #define BAUD 115200
@@ -15,164 +8,41 @@
 #define RIGHTWHEEL_BKWRD  A3
 
 
-void PWMfwrd(float scaleFactor);
-void PWMbkwrd(float scaleFactor);
-void PWMleft(float scaleFactor);
-void PWMright(float scaleFactor);
-void PWMfwrdLeft(float scaleFactor);
-void PWMfwrdRight(float scaleFactor);
-void PWMbkwrdLeft(float scaleFactor);
-void PWMbkwrdRight(float scaleFactor);
-
-void PWMfwrd(float scaleFactor) {
-  
-  if (scaleFactor >=1)
-  {
-    //Left motor
-    analogWrite(LEFTWHEEL_FWRD,  MAXPWM);
-    analogWrite(LEFTWHEEL_BKWRD,   0);
-
-    //Right Motor
-    analogWrite(RIGHTWHEEL_FWRD,   MAXPWM);
-    analogWrite(RIGHTWHEEL_BKWRD,   0);
-  }
-  else
-  {
-    //Left Motor
-    analogWrite(LEFTWHEEL_FWRD,  MAXPWM*scaleFactor);
-    analogWrite(LEFTWHEEL_BKWRD,   0);
-
-    //Right Motor
-    analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*scaleFactor);
-    analogWrite(RIGHTWHEEL_BKWRD,   0);}
-    Serial.println("GOING FORWARD");
+void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd) {
+    analogWrite(LEFTWHEEL_FWRD, MAXPWM * leftFwd);
+    analogWrite(LEFTWHEEL_BKWRD, MAXPWM * leftBkwd);
+    analogWrite(RIGHTWHEEL_FWRD, MAXPWM * rightFwd);
+    analogWrite(RIGHTWHEEL_BKWRD, MAXPWM * rightBkwd);
 }
 
-void PWMbkwrd(float scaleFactor) {
-  if (scaleFactor >=1)
-  {
-    //Left motor
-    analogWrite(LEFTWHEEL_FWRD,  0);
-    analogWrite(LEFTWHEEL_BKWRD,   MAXPWM);
+void moveRobot(const char* direction, float scaleFactor) {
+    scaleFactor = (scaleFactor >= 1) ? 1.0 : scaleFactor; // Clamp scaleFactor to 1.0 max
 
-    //Right motor
-    analogWrite(RIGHTWHEEL_FWRD,   0);
-    analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM);
-  }
-  else{
-    //Left motor
-    analogWrite(LEFTWHEEL_FWRD,  0);
-    analogWrite(LEFTWHEEL_BKWRD,   MAXPWM*scaleFactor);
+    if (strcmp(direction, "FORWARD") == 0) {
+        setMotorPWM(scaleFactor, 0, scaleFactor, 0);
+    } 
+    else if (strcmp(direction, "BACKWARDS") == 0) {
+        setMotorPWM(0, scaleFactor, 0, scaleFactor);
+    } 
+    else if (strcmp(direction, "LEFT") == 0) {
+        setMotorPWM(0, scaleFactor, scaleFactor, 0);
+    } 
+    else if (strcmp(direction, "RIGHT") == 0) {
+        setMotorPWM(scaleFactor, 0, 0, scaleFactor);
+    } 
+    else if (strcmp(direction, "FORWARD LEFT") == 0) {
+        setMotorPWM(0.5 * scaleFactor, 0, scaleFactor, 0);
+    } 
+    else if (strcmp(direction, "FORWARD RIGHT") == 0) {
+        setMotorPWM(scaleFactor, 0, 0.5 * scaleFactor, 0);
+    } 
+    else if (strcmp(direction, "BACKWARDS LEFT") == 0) {
+        setMotorPWM(0, 0.5 * scaleFactor, 0, scaleFactor);
+    } 
+    else if (strcmp(direction, "BACKWARDS RIGHT") == 0) {
+        setMotorPWM(0, scaleFactor, 0, 0.5 * scaleFactor);
+    } 
 
-    //Right motor
-    analogWrite(RIGHTWHEEL_FWRD,   0);
-    analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM*scaleFactor);
-  }
-  Serial.println("GOING BACKWARD");
+    Serial.print("GOING ");
+    Serial.println(direction);
 }
-
-void PWMleft(float scaleFactor) {
-    if (scaleFactor >=1)
-    {
-      //Left motor
-      analogWrite(LEFTWHEEL_FWRD,  0);
-      analogWrite(LEFTWHEEL_BKWRD,   MAXPWM);
-  
-      //Right motor
-      analogWrite(RIGHTWHEEL_FWRD,   MAXPWM);
-      analogWrite(RIGHTWHEEL_BKWRD,   0);
-    }
-    else{
-      //Left motor
-      analogWrite(LEFTWHEEL_FWRD,  0);
-      analogWrite(LEFTWHEEL_BKWRD,   MAXPWM*scaleFactor);
-  
-      //Right motor
-      analogWrite(RIGHTWHEEL_FWRD,   MAXPWM*scaleFactor);
-      analogWrite(RIGHTWHEEL_BKWRD,   0);
-    }
-    Serial.println("GOING LEFT");
-}
-
-void PWMright(float scaleFactor) {
-    if (scaleFactor >=1)
-    {
-      //Left motor
-      analogWrite(LEFTWHEEL_FWRD,  MAXPWM);
-      analogWrite(LEFTWHEEL_BKWRD,   MAXPWM);
-  
-      //Right motor
-      analogWrite(RIGHTWHEEL_FWRD,   0);
-      analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM);
-    }
-    else{
-      //Left motor
-      analogWrite(LEFTWHEEL_FWRD,  MAXPWM*scaleFactor);
-      analogWrite(LEFTWHEEL_BKWRD,   0);
-  
-      //Right motor
-      analogWrite(RIGHTWHEEL_FWRD,   0);
-      analogWrite(RIGHTWHEEL_BKWRD,   MAXPWM*scaleFactor);
-    }
-    Serial.println("GOING RIGHT");
-}
-
-void PWMfwrdLeft(float scaleFactor) {
-    if (scaleFactor >= 1) {
-      analogWrite(LEFTWHEEL_FWRD, MAXPWM * 0.5);  // Left wheel slower
-      analogWrite(LEFTWHEEL_BKWRD, 0);
-      analogWrite(RIGHTWHEEL_FWRD, MAXPWM);       // Right wheel full speed
-      analogWrite(RIGHTWHEEL_BKWRD, 0);
-    } else {
-      analogWrite(LEFTWHEEL_FWRD, MAXPWM * 0.5 * scaleFactor);
-      analogWrite(LEFTWHEEL_BKWRD, 0);
-      analogWrite(RIGHTWHEEL_FWRD, MAXPWM * scaleFactor);
-      analogWrite(RIGHTWHEEL_BKWRD, 0);
-    }
-    Serial.println("GOING FORWARD LEFT");
-  }
-  
-void PWMfwrdRight(float scaleFactor) {
-    if (scaleFactor >= 1) {
-      analogWrite(LEFTWHEEL_FWRD, MAXPWM);       // Left wheel full speed
-      analogWrite(LEFTWHEEL_BKWRD, 0);
-      analogWrite(RIGHTWHEEL_FWRD, MAXPWM * 0.5); // Right wheel slower
-      analogWrite(RIGHTWHEEL_BKWRD, 0);
-    } else {
-      analogWrite(LEFTWHEEL_FWRD, MAXPWM * scaleFactor);
-      analogWrite(LEFTWHEEL_BKWRD, 0);
-      analogWrite(RIGHTWHEEL_FWRD, MAXPWM * 0.5 * scaleFactor);
-      analogWrite(RIGHTWHEEL_BKWRD, 0);
-    }
-    Serial.println("GOING FORWARD RIGHT");
-  }
-  
-void PWMbkwrdLeft(float scaleFactor) {
-    if (scaleFactor >= 1) {
-      analogWrite(LEFTWHEEL_FWRD, 0);
-      analogWrite(LEFTWHEEL_BKWRD, MAXPWM * 0.5);  // Left wheel slower
-      analogWrite(RIGHTWHEEL_FWRD, 0);
-      analogWrite(RIGHTWHEEL_BKWRD, MAXPWM);       // Right wheel full speed
-    } else {
-      analogWrite(LEFTWHEEL_FWRD, 0);
-      analogWrite(LEFTWHEEL_BKWRD, MAXPWM * 0.5 * scaleFactor);
-      analogWrite(RIGHTWHEEL_FWRD, 0);
-      analogWrite(RIGHTWHEEL_BKWRD, MAXPWM * scaleFactor);
-    }
-    Serial.println("GOING BACKWARD LEFT");
-  }
-  
-void PWMbkwrdRight(float scaleFactor) {
-    if (scaleFactor >= 1) {
-      analogWrite(LEFTWHEEL_FWRD, 0);
-      analogWrite(LEFTWHEEL_BKWRD, MAXPWM);       // Left wheel full speed
-      analogWrite(RIGHTWHEEL_FWRD, 0);
-      analogWrite(RIGHTWHEEL_BKWRD, MAXPWM * 0.5); // Right wheel slower
-    } else {
-      analogWrite(LEFTWHEEL_FWRD, 0);
-      analogWrite(LEFTWHEEL_BKWRD, MAXPWM * scaleFactor);
-      analogWrite(RIGHTWHEEL_FWRD, 0);
-      analogWrite(RIGHTWHEEL_BKWRD, MAXPWM * 0.5 * scaleFactor);
-    }
-    Serial.println("GOING BACKWARD RIGHT");
-  }
