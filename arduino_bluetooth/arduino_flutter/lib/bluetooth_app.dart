@@ -33,7 +33,9 @@ class _MyHomePageState extends State<MyHomePage> {
   QualifiedCharacteristic? _writeCharacteristic;
 
   bool _isConnected = false;
-
+  Map<String, bool> _buttonFlashing = {};
+  Map<String, Timer?> _buttonTimers = {};
+  Map<String, bool> _isFlashing = {};
   @override
   void initState() {
     super.initState();
@@ -104,6 +106,29 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
   }
+  void _toggleFlashing(String command) {
+    if (_buttonFlashing[command] == true) {
+      _buttonTimers[command]?.cancel();
+      _buttonTimers[command] = null;
+      _buttonFlashing[command] = false;
+      _isFlashing[command] = false;
+    } else {
+      _buttonFlashing[command] = true;
+      _isFlashing[command] = true;
+      _buttonTimers[command] = Timer.periodic(const Duration(milliseconds: 150), (timer) {
+        setState(() {
+          _isFlashing[command] = !_isFlashing[command]!;
+        });
+      });
+    }
+    setState(() {});
+  }
+  Color _getButtonColor(String command) {
+    if (_buttonFlashing[command] == true && _isFlashing[command] == true) {
+      return Colors.yellow;
+    }
+    return Colors.white;
+  }
 
   void _onConnected(String deviceId) {
     final characteristic = QualifiedCharacteristic(
@@ -128,6 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _writeCharacteristic!,
           value: utf8.encode(command),
         );
+        _toggleFlashing(command);
         setState(() {
           _stateMessage = "Command '$command' sent!";
         });
@@ -264,6 +290,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     ElevatedButton(
                       onPressed: _isConnected ? () => _sendCommand('LEFT SIGNAL') : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _getButtonColor('LEFT SIGNAL'),
+                        foregroundColor: Colors.black,
+                      ),
                       child: const Icon(
                         Icons.arrow_left,
                         color: Color(0xFFB8860B),
@@ -273,6 +303,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: _isConnected ? () => _sendCommand('HAZARD') : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _getButtonColor('HAZARD'),
+                        foregroundColor: Colors.black,
+                      ),
                       child: const Icon(
                         Icons.warning_amber,
                         color: Colors.red,
@@ -282,6 +316,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: _isConnected ? () => _sendCommand('RIGHT SIGNAL') : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _getButtonColor('RIGHT SIGNAL'),
+                        foregroundColor: Colors.black,
+                      ),
                       child: const Icon(
                         Icons.arrow_right,
                         color: Color(0xFFB8860B),
