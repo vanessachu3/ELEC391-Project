@@ -7,6 +7,11 @@
 #include <math.h>
 #include "Arduino_BMI270_BMM150.h"
 
+#define LEFTWHEEL_FWRD    D10
+#define LEFTWHEEL_BKWRD   D9
+#define RIGHTWHEEL_FWRD   D8
+#define RIGHTWHEEL_BKWRD  D7
+
 
 // Function prototypes for PWM control
 void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd);

@@ -146,16 +146,26 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<void> _sendCommand(String command) async {
+  Future<void> _sendCommand(String command, double distance) async {
     if (_writeCharacteristic != null) {
       try {
+        List<int> messageBytes;
+        if(distance != 0)
+        {
+          String message = '$command,${distance.toStringAsFixed(2)}';
+          messageBytes = utf8.encode(message);  // Convert the message to a byte array
+        }
+        else {
+          messageBytes = utf8.encode(command);
+        }
+          //List<int> messageBytes = utf8.encode(command);
         await _ble.writeCharacteristicWithResponse(
           _writeCharacteristic!,
-          value: utf8.encode(command),
+          value: messageBytes,
         );
         _toggleFlashing(command);
         setState(() {
-          _stateMessage = "Command '$command' sent!";
+          _stateMessage = "Command '$command' with distance $distance sent!";
         });
       } catch (e) {
         setState(() {
@@ -247,35 +257,37 @@ class _MyHomePageState extends State<MyHomePage> {
                       degrees = (degrees + 90) % 360;
 
                       // Ensure the joystick moves a certain distance before triggering commands
-                      if (distance > 0.5) {
+                      //print(distance);
+                      if (distance > 0.1) {
                             // Define ranges for directions
+                            print(distance);
                             if (degrees >= 0 && degrees < 10) {
-                              _sendCommand('FORWARD');
+                              _sendCommand('FORWARD',distance);
                               print('FORWARD');
                             } else if (degrees >= 10 && degrees < 80) {
-                              _sendCommand('FORWARD RIGHT');
+                              _sendCommand('FORWARD RIGHT',distance);
                               print('FORWARD RIGHT');
                             } else if (degrees >= 80 && degrees < 100) {
-                              _sendCommand('RIGHT');
+                              _sendCommand('RIGHT',distance);
                               print('RIGHT');
                             } else if (degrees >= 100 && degrees < 170) {
-                              _sendCommand('BACKWARDS RIGHT');
+                              _sendCommand('BACKWARDS RIGHT',distance);
                               print('BACKWARDS RIGHT');
                             } else if (degrees >= 170 && degrees < 190) {
-                              _sendCommand('BACKWARDS');
+                              _sendCommand('BACKWARDS',distance);
                               print('BACKWARDS');
                             } else if (degrees >= 190 && degrees < 260) {
-                              _sendCommand('BACKWARDS LEFT');
+                              _sendCommand('BACKWARDS LEFT',distance);
                               print('BACKWARDS LEFT');
                             } else if (degrees >= 260 && degrees < 280) {
-                              _sendCommand('LEFT');
+                              _sendCommand('LEFT',distance);
                               print('LEFT');
                             } 
                             else if (degrees >= 280 && degrees < 350) {
-                              _sendCommand('FORWARD LEFT');
+                              _sendCommand('FORWARD LEFT',distance);
                               print('FORWARD LEFT');
                             } else {
-                              _sendCommand('FORWARD'); // For 350 -> 10 degrees
+                              _sendCommand('FORWARD',distance); // For 350 -> 10 degrees
                               print('FORWARD'); // For 350 -> 10 degrees
                             }
                         //print("Joystick position: x = $x, y = $y, angle = $degrees");
@@ -289,7 +301,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('LEFT SIGNAL') : null,
+                      onPressed: _isConnected ? () => _sendCommand('LEFT SIGNAL',0) : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _getButtonColor('LEFT SIGNAL'),
                         foregroundColor: Colors.black,
@@ -302,7 +314,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('HAZARD') : null,
+                      onPressed: _isConnected ? () => _sendCommand('HAZARD',0) : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _getButtonColor('HAZARD'),
                         foregroundColor: Colors.black,
@@ -315,7 +327,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('RIGHT SIGNAL') : null,
+                      onPressed: _isConnected ? () => _sendCommand('RIGHT SIGNAL',0) : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _getButtonColor('RIGHT SIGNAL'),
                         foregroundColor: Colors.black,

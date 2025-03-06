@@ -2,11 +2,6 @@
 
 #define MAXPWM 255
 #define BAUD 115200
-#define LEFTWHEEL_FWRD    A0
-#define LEFTWHEEL_BKWRD   A1
-#define RIGHTWHEEL_FWRD   A2
-#define RIGHTWHEEL_BKWRD  A3
-
 
 void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd) {
     analogWrite(LEFTWHEEL_FWRD, MAXPWM * leftFwd);
@@ -43,6 +38,6 @@ void moveRobot(const char* direction, float scaleFactor) {
         setMotorPWM(0, scaleFactor, 0, 0.5 * scaleFactor);
     } 
 
-    Serial.print("GOING ");
-    Serial.println(direction);
+    // Serial.print("GOING ");
+    // Serial.println(direction);
 }
