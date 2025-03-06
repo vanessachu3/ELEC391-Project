@@ -6,7 +6,7 @@ float accAngle, gyrAngle = 0, currAngle, prevAngle = 0; // initialize accAngle a
 float gyrPrev = 0;                                      // initialize gyroscope integration constant
 float gyrSampleRate;                                    // gyroscope sample rate
 
-float k = 0.8;                                          // filter coefficient
+float k = 0.95;                                          // filter coefficient
 
 #define MAXPWM 255
 
@@ -66,12 +66,13 @@ void balance(PID_t *pid, float currAngle)
   float pidOut = getOutputPID(pid);
 
     //TODO: Add PID stuff per simulink
-    if (pidOut > 0)
+   
+    if (pidOut < 0)
     {
-      PWMbkwrd(pidOut);
+      PWMbkwrd(-pidOut);
     }
     else{
-      PWMfwrd(-pidOut);
+      PWMfwrd(pidOut);
     }
     Serial.println(pidOut);
     

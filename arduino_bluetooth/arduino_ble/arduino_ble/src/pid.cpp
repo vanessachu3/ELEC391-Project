@@ -8,6 +8,8 @@ void updatePID(PID_t * pid, double angle)
     pid->u2 = pid->u1;
     pid->u1 = pid->u0;
 
+    float max_integral = 10;  // Set a max value for integral error
+
     pid->angleRead = angle;
     pid->e0 =  pid->desiredAngle - pid->angleRead;
     pid->u0 = 1/pid->a0 * (-pid->a1*pid->u1 - pid->a2*pid->u2 + pid->b0*pid->e0 + pid->b1*pid->e1 + pid->b2*pid->e2);

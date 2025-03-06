@@ -18,7 +18,8 @@ void loop() {
 
   //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
   float angle = getAngle(gyroTs);
-  //balance(&pid,angle);
+  Serial.println(angle);
+  balance(&pid,angle);
 
   if (central) {
     Serial.print("Connected to central: ");

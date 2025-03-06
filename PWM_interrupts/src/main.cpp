@@ -37,21 +37,21 @@ void TimerHandler()
   ISR_Timer.run();
 }
 
-void doingSomething1()
+void doingSomething1() //interrupt
 {
   digitalWrite(LEDB, LOW);
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDR, LOW);
 }
 
-void doingSomething2()
+void doingSomething2() //interrupt
 {
   digitalWrite(LEDB, HIGH);
   digitalWrite(LEDR, LOW);
   digitalWrite(LEDG, LOW);
 }
 
-void doingSomething3()
+void doingSomething3() //interrupt
 {
   digitalWrite(LEDR, HIGH);
   digitalWrite(LEDB, LOW);

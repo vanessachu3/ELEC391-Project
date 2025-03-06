@@ -3,12 +3,13 @@
 typedef struct
 {
     // tune these parameters
-    float kp = 0.02;
-    float ki = 0.0107;
-    float kd = 0.9;
+    float kp = 0.06; // 0.05;
+    float ki = 0.005; // 0.005;
+    float kd = 0.01; // 0.01;
+
     float N = 1 ; //per simulink
 
-    float Ts = 1/99.86; //gyro sample rate
+    float Ts = 1.0/99.86; //gyro sample rate
 
     float e2, e1, e0, u2, u1, u0  = 0;
     float angleRead;
