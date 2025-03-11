@@ -65,7 +65,7 @@ void balance(PID_t *pid, float currAngle)
   updatePID(pid, currAngle);
   float pidOut = getOutputPID(pid);
 
-    //TODO: Add PID stuff per simulink
+    
    
     if (pidOut < 0)
     {
@@ -74,6 +74,9 @@ void balance(PID_t *pid, float currAngle)
     else{
       PWMfwrd(pidOut);
     }
-    Serial.println(pidOut);
+    Serial.print(pidOut);
+    Serial.print(" ");
+    Serial.println(currAngle);
+    //Serial.println(currAngle);
     
 }

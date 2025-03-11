@@ -18,7 +18,7 @@ void loop() {
 
   //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
   float angle = getAngle(gyroTs);
-  Serial.println(angle);
+  //Serial.println(angle);
   balance(&pid,angle);
 
   if (central) {

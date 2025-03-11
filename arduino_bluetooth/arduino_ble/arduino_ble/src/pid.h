@@ -3,8 +3,8 @@
 typedef struct
 {
     // tune these parameters
-    float kp = 0.06; // 0.05;
-    float ki = 0.005; // 0.005;
+    float kp = 0.08; // 0.05;
+    float ki = 0.1; // 0.005;
     float kd = 0.01; // 0.01;
 
     float N = 1 ; //per simulink
