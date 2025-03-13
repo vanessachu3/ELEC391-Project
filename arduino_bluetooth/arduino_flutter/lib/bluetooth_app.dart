@@ -36,6 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<String, bool> _buttonFlashing = {};
   Map<String, Timer?> _buttonTimers = {};
   Map<String, bool> _isFlashing = {};
+  bool buttonFlashing = false;
   @override
   void initState() {
     super.initState();
@@ -107,22 +108,41 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
   void _toggleFlashing(String command) {
-    if (_buttonFlashing[command] == true) {
-      _buttonTimers[command]?.cancel();
-      _buttonTimers[command] = null;
-      _buttonFlashing[command] = false;
-      _isFlashing[command] = false;
-    } else {
-      _buttonFlashing[command] = true;
-      _isFlashing[command] = true;
-      _buttonTimers[command] = Timer.periodic(const Duration(milliseconds: 150), (timer) {
+  if (command == "STOP") {
+    // Stop all flashing buttons
+    _buttonTimers.forEach((key, timer) {
+      timer?.cancel();
+    });
+    _buttonTimers.clear();
+    _buttonFlashing.clear();
+    _isFlashing.clear();
+    buttonFlashing = false;
+  } else {
+    // Stop any currently flashing button before starting a new one
+    _buttonTimers.forEach((key, timer) {
+      timer?.cancel();
+    });
+    _buttonTimers.clear();
+    _buttonFlashing.clear();
+    _isFlashing.clear();
+    buttonFlashing = false;
+
+    // Start flashing for the new button
+    _buttonFlashing[command] = true;
+    _isFlashing[command] = true;
+    buttonFlashing = true;
+
+    _buttonTimers[command] = Timer.periodic(
+      const Duration(milliseconds: 500),
+      (timer) {
         setState(() {
           _isFlashing[command] = !_isFlashing[command]!;
         });
-      });
-    }
-    setState(() {});
+      },
+    );
   }
+  setState(() {});
+}
   Color _getButtonColor(String command) {
     if (_buttonFlashing[command] == true && _isFlashing[command] == true) {
       return Colors.yellow;
@@ -301,7 +321,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('LEFT SIGNAL',0) : null,
+                                         onPressed: () {
+                        if (_isConnected) {
+                          if (buttonFlashing) {
+                            _sendCommand('STOP',0);
+                          } else {
+                            _sendCommand('LEFT SIGNAL',0);
+                          }
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _getButtonColor('LEFT SIGNAL'),
                         foregroundColor: Colors.black,
@@ -314,7 +342,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('HAZARD',0) : null,
+                      onPressed: () {
+                        if (_isConnected) {
+                          if (buttonFlashing) {
+                            _sendCommand('STOP',0);
+                          } else {
+                            _sendCommand('HAZARD',0);
+                          }
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _getButtonColor('HAZARD'),
                         foregroundColor: Colors.black,
@@ -327,7 +363,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: _isConnected ? () => _sendCommand('RIGHT SIGNAL',0) : null,
+                      onPressed: () {
+                        if (_isConnected) {
+                          if (buttonFlashing) {
+                            _sendCommand('STOP',0);
+                          } else {
+                            _sendCommand('RIGHT SIGNAL',0);
+                          }
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _getButtonColor('RIGHT SIGNAL'),
                         foregroundColor: Colors.black,
