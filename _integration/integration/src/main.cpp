@@ -81,7 +81,7 @@ void loop()
 {
   // insert commands here to test w/o connecting to BLE
   float currAngle = getAngle();
-  currMillis = millis() - currMillis;
+  currMillis = (millis() - currMillis)/1000.0f;
   PID_update(&pid, currAngle, currMillis);
   
   // Wait for a BLE central to connect

@@ -6,6 +6,8 @@ PID contains all the required functions and data for PID control.
 #include "PWM.h"
 #include "Arduino_BMI270_BMM150.h"
 
+#define max_speed 50.0f
+
 PID_controller pid;
 
 void PID_update(PID_controller *pid, float currAngle, float currMillis)
@@ -40,16 +42,16 @@ void PID_update(PID_controller *pid, float currAngle, float currMillis)
 
     if(pid->limMin < proportional)
         limMinInt = pid->limMin - proportional;
-        
+
     else
         limMinInt = 0.0f;
 
     // clamp integrator
     if(pid->integrator > limMaxInt)
-        pid->integrator = limMaxInt;
+        pid->integrator = limMaxInt/8;
 
     else if(pid->integrator < limMinInt)
-        pid->integrator = limMinInt;
+        pid->integrator = limMinInt/8;
 
     // Serial.print(pid->integrator);
     // Serial.print("\t");
@@ -74,13 +76,23 @@ void PID_update(PID_controller *pid, float currAngle, float currMillis)
     pid->prevAngle = currAngle;
 
     if(pid->output < 0)
-        PWM_bw(50.0f+50.0f*(-pid->output)); // mapped from [0,1] to [50,100]
-
+        PWM_bw(-pid->output); // mapped from [0,1] to [50,100]
+    // 50.0f+50.0f*(-pid->output)
     else if(pid->output > 0)
-        PWM_fw(50.0f+50.0f*pid->output);
-    
+        PWM_fw(pid->output);
+    // 50.0f+50.0f*pid->output
+    else if(pid->output == 0)
+        PWM_stop();
     if(currAngle > 30 || currAngle < -30)
         PWM_stop();
 
-    // Serial.println(pid->output);
+    Serial.print(pid->output);
+    Serial.print("\t");
+    Serial.print(proportional);
+    Serial.print("\t");
+    Serial.print(pid->integrator);
+    Serial.print("\t");
+    Serial.print(pid->differentiator);
+    Serial.print("\t");
+    Serial.println(currAngle);
 };

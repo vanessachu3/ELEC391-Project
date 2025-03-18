@@ -14,7 +14,7 @@ timer will be used for non mission-critical tasks, like speaker/LEDs.
 float ax, ay, az, gx, gy, gz, prevAngle = 0;
 
 // k is the filter coefficient; can be modified
-static float k              = 0.8;
+static float k              = 0.77;
 
 void IMU_init()
 {

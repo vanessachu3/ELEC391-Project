@@ -8,7 +8,7 @@ some pins reserved for turn signal LEDs.
 #include <Arduino.h>
 
 #define _PWM_LOGLEVEL_      0
-#define FREQUENCY           7500.0f
+#define FREQUENCY           1000.0f
 
 // D10 & D9 for motorL, D8 & D7 for motorR ... subject to change
 uint32_t pins[]         =   { D10, D9, D8, D7};
@@ -42,7 +42,7 @@ void PWM_init()
     digitalWrite(LEDG, LOW);    // turns LEDG on ..
 }
 
-void PWM_fw(volatile float pid_out)
+void PWM_fw(float pid_out)
 {
     for(uint8_t index = 0; index < NUM_OF_PINS; index++)
     {
@@ -57,7 +57,7 @@ void PWM_fw(volatile float pid_out)
     }
 }
 
-void PWM_bw(volatile float pid_out)
+void PWM_bw(float pid_out)
 {
     for(uint8_t index = 0; index < NUM_OF_PINS; index++)
     {
