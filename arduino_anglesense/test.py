@@ -29,7 +29,7 @@ def animate(i, xs, pidOutput, angleRead, ser):
     try:
         pid, angle = list(map(float, data_processed))
 
-        print("%s\t%s" % (pid, angle))
+        # print("%s\t%s" % (pid, angle))
     
         # Add x and y to lists
         xs.append(dt.datetime.now().strftime('%S.%f')[:-3])
