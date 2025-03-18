@@ -1,33 +1,44 @@
 #include <pid.h>
 #include <math.h>
 PID_t pid;
-void updatePID(PID_t * pid, double angle)
-{
-    //update error/outputs:
-    pid->e2 = pid->e1;
+void updatePID(PID_t *pid, double angle, float sampleSec) {
+    // Update previous error and output values
     pid->e1 = pid->e0;
-    pid->u2 = pid->u1;
-    pid->u1 = pid->u0;
+    pid->Ts = sampleSec;
 
-    //float max_integral = 10;  // Set a max value for integral error
-
+    // Calculate current error
     pid->angleRead = angle;
-    pid->e0 =  pid->desiredAngle - pid->angleRead;
-    pid->u0 = 1/pid->a0 * (-pid->a1*pid->u1 - pid->a2*pid->u2 + pid->b0*pid->e0 + pid->b1*pid->e1 + pid->b2*pid->e2);
-    if (abs(angle) >37)
-    {
-        pid->u0 = 0;
+    pid->e0 = pid->desiredAngle - pid->angleRead;
+
+    // Proportional term
+    pid->pTerm = pid->kp * pid->e0; //updated error
+
+    // Integral term with anti-windup
+    pid->iTemp += pid->e0 * pid->Ts;
+    const float maxIntegral = 1.0f;
+    if (pid->iTemp > maxIntegral) pid->iTemp = maxIntegral;
+    else if (pid->iTemp < -maxIntegral) pid->iTemp = -maxIntegral;
+    
+    pid->iTerm = pid->ki * pid->iTemp;
+
+    // Derivative term
+    pid->dTemp = (pid->e0 - pid->e1) / pid->Ts;
+
+    pid->dTerm = pid->kd * pid->dTemp;
+
+    // Compute final output
+    pid->u0 = pid->pTerm + pid->iTerm + pid->dTerm;
+
+    // Safety shut-off for large angles
+    if (fabs(angle) > 37.0) {
+        pid->u0 = 0.0;
     }
 
-    if (pid->u0 > 1)
-    {
-        pid->u0 = 1;
-    }
-    if (pid->u0 <-1)
-    {
-        pid->u0 = -1;
-    }
+    // Output saturation (limit to -1 to 1)
+    if (pid->u0 > 1.0) pid->u0 = 1.0;
+    else if (pid->u0 < -1.0) pid->u0 = -1.0;
 }
+
 
 
 float getOutputPID(PID_t *pid)

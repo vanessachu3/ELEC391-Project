@@ -6,7 +6,7 @@ float accAngle, gyrAngle = 0, currAngle, prevAngle = 0; // initialize accAngle a
 float gyrPrev = 0;                                      // initialize gyroscope integration constant
 float gyrSampleRate;                                    // gyroscope sample rate
 
-float k = 0.95;                                          // filter coefficient
+float k = 0.8;                                          // filter coefficient
 
 #define MAXPWM 255
 
@@ -60,13 +60,10 @@ void PWMbkwrd(float scaleFactor) {
   
 }
 
-void balance(PID_t *pid, float currAngle)
+void balance(PID_t *pid, float currAngle,float sampleSec)
 {
-  updatePID(pid, currAngle);
+  updatePID(pid, currAngle,sampleSec);
   float pidOut = getOutputPID(pid);
-
-    
-   
     if (pidOut < 0)
     {
       PWMbkwrd(-pidOut);

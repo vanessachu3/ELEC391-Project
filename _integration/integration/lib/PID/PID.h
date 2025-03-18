@@ -27,6 +27,6 @@ typedef struct
 extern PID_controller pid;
 
 // void PID_init();
-void PID_update(PID_controller *pid, float currAngle, float currMillis);
+void PID_update(PID_controller *pid, float currAngle, float currSec);
 
 #endif

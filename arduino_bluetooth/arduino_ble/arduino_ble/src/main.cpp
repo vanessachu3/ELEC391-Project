@@ -1,26 +1,29 @@
 #include <Arduino.h>
-#include <ArduinoBLE.h>
+//#include <ArduinoBLE.h>
 #include <PWM.h>
-#include <BLESetup.h>
+//#include <BLESetup.h>
 #include <balanceRobot.h>
 #include <pid.h>
 
 
 float gyroTs = 0.01;
+float currMillis;
 void setup() {
-  setupBLE();
+  //setupBLE();
   gyroTs = getAngleSetup();
+  currMillis = millis();
 }
 
 void loop() {
   // Wait for a BLE central to connect
-  BLEDevice central = BLE.central();
+  //BLEDevice central = BLE.central();
+  float sampleSec = (millis() - currMillis)/1000.0f;
 
   //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
   float angle = getAngle(gyroTs);
   //Serial.println(angle);
-  balance(&pid,angle);
-
+  balance(&pid,angle,sampleSec);
+#if 0
   if (central) {
     Serial.print("Connected to central: ");
     Serial.println(central.address());
@@ -68,4 +71,5 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW); // Turn off LED when disconnected
     Serial.println("Disconnected from central.");
   }
+  #endif
 }

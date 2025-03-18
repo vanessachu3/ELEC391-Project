@@ -1,3 +1,4 @@
+#if 0 
 #ifndef BLESETUP_H
 #define BLESETUP_H
 
@@ -10,4 +11,5 @@ extern BLECharacteristic customCharacteristic;
 
 void setupBLE();
 
+#endif
 #endif

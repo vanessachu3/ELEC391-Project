@@ -1,3 +1,4 @@
+#if 0
 #include "BLESetup.h"
 
 #define BUFFER_SIZE 20
@@ -38,3 +39,4 @@ void setupBLE() {
   Serial.println("Bluetooth® device active, waiting for connections...");
 }
 
+#endif

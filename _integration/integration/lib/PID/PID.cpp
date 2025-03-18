@@ -10,10 +10,10 @@ PID contains all the required functions and data for PID control.
 
 PID_controller pid;
 
-void PID_update(PID_controller *pid, float currAngle, float currMillis)
+void PID_update(PID_controller *pid, float currAngle, float currSec)
 {
     
-    pid->T = currMillis;
+    pid->T = currSec; //seconds
 
     // Serial.print(currAngle);
     // Serial.print("\t");
