@@ -71,9 +71,9 @@ void balance(PID_t *pid, float currAngle,float sampleSec)
     else{
       PWMfwrd(pidOut);
     }
-    Serial.print(pidOut);
-    Serial.print(" ");
-    Serial.println(currAngle);
+    //Serial.print(pidOut);
+    //Serial.print(" ");
+    //Serial.println(currAngle);
     //Serial.println(currAngle);
     
 }
