@@ -6,33 +6,26 @@ PID contains all the required functions and data for PID control.
 #include "PWM.h"
 #include "Arduino_BMI270_BMM150.h"
 
-#define max_speed 50.0f
-
 PID_controller pid;
 
-void PID_update(PID_controller *pid, float currAngle, float currSec)
+void PID_update(PID_controller *pid, float currAngle, float currMillis)
 {
     
-    pid->T = currSec; //seconds
-
-    // Serial.print(currAngle);
-    // Serial.print("\t");
+    pid->T = currMillis;
 
     // error signal
     float error = pid->setpoint - currAngle;
 
     // proportional
-    float proportional = pid->kp * error;
-
-    // Serial.print(proportional);
-    // Serial.print("\t");
+    float proportional = error;
 
     // integral
     pid->integrator = pid->integrator + 0.5f
-                    * pid->ki * pid->T * (error + pid->prev_error);
+                    * pid->ki * currMillis * (error + pid->prev_error);
 
     // anti-wind up via integrator clamping
     float limMinInt, limMaxInt;
+
     // integral limits
     if(pid->limMax > proportional)
         limMaxInt = pid->limMax - proportional;
@@ -48,23 +41,17 @@ void PID_update(PID_controller *pid, float currAngle, float currSec)
 
     // clamp integrator
     if(pid->integrator > limMaxInt)
-        pid->integrator = limMaxInt/8;
+        pid->integrator = limMaxInt;
 
     else if(pid->integrator < limMinInt)
-        pid->integrator = limMinInt/8;
-
-    // Serial.print(pid->integrator);
-    // Serial.print("\t");
+        pid->integrator = limMinInt;
 
     // differential
-    pid->differentiator = (2.0f * pid->kd * (currAngle - pid->prevAngle)
-                        + (2.0f * pid->tau - pid->T) * pid->differentiator)
-                        / (2.0f * pid->tau + pid->T);
+    pid->differentiator = (2.0f * (currAngle - pid->prevAngle)
+                        + (2.0f * pid->tau - currMillis) * pid->differentiator)
+                        / (2.0f * pid->tau + currMillis);
 
-    // Serial.print(pid->differentiator);
-    // Serial.print("\t");
-
-    pid->output = proportional + pid->integrator + pid->differentiator;
+    pid->output = proportional*pid->kp + pid->integrator*pid->ki + pid->differentiator*pid->kd;
     
     if(pid->output > pid->limMax)
         pid->output = pid->limMax;
@@ -75,16 +62,17 @@ void PID_update(PID_controller *pid, float currAngle, float currSec)
     pid->prev_error = error;
     pid->prevAngle = currAngle;
 
-    if(pid->output < 0)
-        PWM_bw(-pid->output); // mapped from [0,1] to [50,100]
-    // 50.0f+50.0f*(-pid->output)
-    else if(pid->output > 0)
-        PWM_fw(pid->output);
-    // 50.0f+50.0f*pid->output
-    else if(pid->output == 0)
-        PWM_stop();
     if(currAngle > 30 || currAngle < -30)
         PWM_stop();
+    else if(pid->output < 0.0f)
+        PWM_bw(25.0f+20.0f*(-pid->output)); // mapped from [0,1] to [50,100]
+    // 50.0f+50.0f*(-pid->output)
+    else if(pid->output > 0.0f)
+        PWM_fw(25.0f+20.0f*pid->output);
+    // 50.0f+50.0f*pid->output
+    else if(pid->output == 0.0f)
+        PWM_stop();
+    
 
     Serial.print(pid->output);
     Serial.print("\t");

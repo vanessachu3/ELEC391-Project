@@ -7,7 +7,7 @@
 
 // default CS pin for Adafruit BFF is TX
 #define SD_CS_PIN D10
-#define speaker_pin D9
+#define speaker_pin A7
 // WAV file parameters (ensure your .wav file matches this)
 #define SAMPLE_RATE 32000 // Hz
 #define BUFFER_SIZE 256

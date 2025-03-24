@@ -7,7 +7,7 @@ some pins reserved for turn signal LEDs.
 #include "PWM.h"
 #include <Arduino.h>
 
-#define _PWM_LOGLEVEL_      0
+// #define _PWM_LOGLEVEL_      0
 #define FREQUENCY           1000.0f
 
 // D10 & D9 for motorL, D8 & D7 for motorR ... subject to change

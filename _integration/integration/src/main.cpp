@@ -4,23 +4,131 @@
 
 #include <Arduino.h>
 
-// pid
+//==========================================================
+// PID
+//==========================================================
 #include <PID.h>
 
-// pwm headers
+//==========================================================
+// PWM
+//==========================================================
 #include <PWM.h>
 #include <nRF52_MBED_PWM.h>
 
-// timers - timers must be initialized in main()
-#include <TIMERS.h>
+//==========================================================
+// Signal variables/functions
+//==========================================================
+
+void SIG_init();
+
+// timer-based functions
+void sigL();
+void sigR();
+
+// turn signal GPIO pins
+#define pinL    D2
+#define pinR    D3
+
+// global flags for turn signals
+bool flagL = 0;
+bool flagR = 0;
+bool flagH = 0;
+
+void SIG_init()
+{
+    pinMode(pinL, OUTPUT);
+    pinMode(pinR, OUTPUT);
+}
+
+void sigL()
+{
+    if(flagL)
+        digitalWrite(pinL, !digitalRead(pinL));
+    else
+        digitalWrite(pinL, LOW);
+}
+
+void sigR()
+{
+    if(flagR)
+        digitalWrite(pinR, !digitalRead(pinR));
+    else
+        digitalWrite(pinR, LOW);
+}
+
+void sigH()
+{
+    if(flagL && flagR)
+    {
+        digitalWrite(pinL, !digitalRead(pinL));
+        digitalWrite(pinR, !digitalRead(pinR));
+    }
+    else
+    {
+        digitalWrite(pinL, LOW);
+        digitalWrite(pinR, LOW);
+    }
+}
+
+//==========================================================
+// IMU variables/functions
+//==========================================================
+#include <Arduino_BMI270_BMM150.h>
+
+void IMU_init();
+float getAngle();
+
+#define angleOffset 0.04
+#define k           0.79  // filter coefficient
+
+float ax, ay, az;
+float gx, gy, gz;
+float prevAngle   = 0;
+
+void IMU_init()
+{
+    if(!IMU.begin())
+    {
+        Serial.println("Failed to initialize IMU!");
+        while(1);
+    }
+}
+
+float getAngle()
+{
+    if(IMU.accelerationAvailable() && IMU.gyroscopeAvailable())
+    {
+        float gyrSampleRate = IMU.gyroscopeSampleRate();
+
+        IMU.readAcceleration(ax, ay, az);
+        IMU.readGyroscope(gx, gy, gz);
+
+        float accAngle = atan(ay/az)*180/PI;
+        float gyrAngle = prevAngle - gx/gyrSampleRate;
+
+        float currAngle = k*gyrAngle + (k-1)*accAngle;
+        prevAngle = currAngle;
+
+        return currAngle + angleOffset;
+    }
+    else
+        return 0;
+}
+
+//==========================================================
+// TIMERS (must be initialized in main.cpp)
+//==========================================================
 #include <NRF52_MBED_TimerInterrupt.h>
 #include <NRF52_MBED_ISR_Timer.h>
 
-#define TIMER_INTERRUPT_DEBUG     0
-#define _TIMERINTERRUPT_LOGLEVEL_ 0
+void TimerHandler();
+void TIMERF_init();
 
-#define HW_TIMER_INTERVAL_100us     100   // in micro-seconds
-#define TIMER_INTERVAL_100us        0.1   // in milli-seconds
+#define TIMER_INTERRUPT_DEBUG       0
+// #define _TIMERINTERRUPT_LOGLEVEL_ 0
+
+#define HW_TIMER_INTERVAL_100us     100L  // in micro-seconds
+#define TIMER_INTERVAL_500ms        500L  // in milli-seconds
 
 NRF52_MBED_Timer ITimer(NRF_TIMER_3);
 NRF52_MBED_ISRTimer ISR_Timer;
@@ -30,61 +138,55 @@ void TimerHandler()
     ISR_Timer.run();
 }
 
-void TIMERS_init()
+void TIMERF_init()
 {
-    if(ITimer.attachInterruptInterval(HW_TIMER_INTERVAL_100us, TimerHandler))
+    if(!ITimer.attachInterruptInterval(HW_TIMER_INTERVAL_100us, TimerHandler))
     {
-        Serial.print(F("ITimer started ..."));
+        Serial.print("Failed to start ITimer!");
+        pinMode(LEDR, OUTPUT);
+        digitalWrite(LEDR, LOW);  // turn on the red LED if error
     }
     else
-        Serial.println(F("Starting ITimer failed!"));
+        Serial.println("ITimer started...");
 
-    // ISR_Timer.setInterval(TIMER_INTERVAL_100us, getOutput);
-    // ISR_Timer.setInterval(TIMER_INTERVAL_100us, PID_update);
-
-    // turn on LEDB to indicate timers are active
-    // pinMode(LEDR, OUTPUT);
-    // pinMode(LEDB, OUTPUT);
-    // digitalWrite(LEDR, LOW);
+    ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigL);
+    ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigR);
 }
 
-// ble
-#include <BLE.h>
+//==========================================================
+// BLE
+//==========================================================
+// #include <BLE.h>
 
 // variables
-volatile float test = 0.5; // should be a % (0 - 100)
 float startMillis;
 float currMillis;
 
-
 void setup() 
 {
-  // pinMode(LEDR, OUTPUT);
-  // pinMode(LEDG, OUTPUT);
-  // pinMode(LEDB, OUTPUT);
-
-  // digitalWrite(LEDR, LOW);
-  // digitalWrite(LEDG, LOW);
-  // digitalWrite(LEDB, LOW);
-
   Serial.begin(115200);
 
-  PWM_init(); 
-  TIMERS_init();
-  BLE_init();
+  SIG_init();
+  PWM_init();
+  TIMERF_init();
+  // BLE_init();
   IMU_init();
 
   currMillis = millis();
+
+  flagL = 1;
+  flagR = 1;
 }
 
 void loop()
 {
   // insert commands here to test w/o connecting to BLE
   float currAngle = getAngle();
-  currMillis = (millis() - currMillis)/1000.0f;
+  currMillis = (millis() - currMillis)/1000.0f; // in seconds
   PID_update(&pid, currAngle, currMillis);
   
-  // Wait for a BLE central to connect
+  // Wait for  a BLE central to connect
+  #if 0
   BLEDevice central = BLE.central();
 
   if(central) 
@@ -126,4 +228,5 @@ void loop()
     Serial.println("Disconnected from central.");
     PWM_stop();
   } 
+  #endif 
 }
