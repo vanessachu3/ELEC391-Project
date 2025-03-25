@@ -58,16 +58,15 @@ void sigR()
 
 void sigH()
 {
-    if(flagL && flagR)
+    if(flagH)
     {
-        digitalWrite(pinL, !digitalRead(pinL));
-        digitalWrite(pinR, !digitalRead(pinR));
+        flagL = 1;
+        flagR = 1;
     }
-    else
-    {
-        digitalWrite(pinL, LOW);
-        digitalWrite(pinR, LOW);
-    }
+    else if(!flagH && flagL)
+        flagR = 0;
+    else if(!flagH && flagR)
+        flagL = 0;
 }
 
 //==========================================================
@@ -174,7 +173,7 @@ void setup()
 
   currMillis = millis();
 
-  flagL = 1;
+  flagL = 0;
   flagR = 1;
 }
 
