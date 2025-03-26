@@ -9,7 +9,7 @@ int ice_cream_song[] = {
     NOTE_C5, NOTE_AS4, 
     NOTE_GS4, NOTE_GS4, NOTE_AS4, 
     NOTE_GS4, NOTE_DS4, NOTE_C4, NOTE_CS4,
-    NOTE_DS4, NOTE_F3, NOTE_DS4, NOTE_C4,
+    NOTE_DS4, NOTE_F4, NOTE_DS4, NOTE_C4,
     NOTE_DS4, NOTE_GS4, NOTE_AS4,
     NOTE_C5, NOTE_C5,
     NOTE_C5, NOTE_AS4, NOTE_GS4, NOTE_AS4,
@@ -17,7 +17,7 @@ int ice_cream_song[] = {
     NOTE_AS4, NOTE_C5, NOTE_AS4,
     NOTE_GS4, NOTE_GS4, NOTE_AS4,
     NOTE_GS4, NOTE_DS4, NOTE_C4, NOTE_CS4,
-    NOTE_DS4, NOTE_F3, NOTE_DS4, NOTE_C4,
+    NOTE_DS4, NOTE_F4, NOTE_DS4, NOTE_C4,
     NOTE_DS4, NOTE_GS4, NOTE_AS4,
     NOTE_C5, NOTE_DS5, NOTE_DS5, NOTE_F5,
     NOTE_DS5, NOTE_C5, NOTE_GS4, NOTE_AS4,
@@ -59,7 +59,7 @@ void loop() {
 }
 
 void play_music() {
-    for (int i = 0; i < sizeof(ice_cream_song)/sizeof(ice_cream_song[0]) -1; i++){
+    for (int i = 0; i < sizeof(ice_cream_song)/sizeof(ice_cream_song[0]); i++){
         //e.g. quarter note = 1000ms / 4, eighth note = 1000ms/8, etc.
         int note_length = 1000/note_duration[i];
         tone(speaker_pin, ice_cream_song[i], note_length);
