@@ -37,6 +37,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<String, Timer?> _buttonTimers = {};
   Map<String, bool> _isFlashing = {};
   bool buttonFlashing = false;
+  bool _musicOn = false; // Toggle state for music
+  bool _platformExtended = false; // Toggle state for platform
   @override
   void initState() {
     super.initState();
@@ -143,6 +145,35 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   setState(() {});
 }
+  void _toggleMusic() {
+    setState(() {
+      _musicOn = !_musicOn;
+      _stateMessage = _musicOn ? "Music turned ON" : "Music turned OFF";
+      if (_musicOn) {
+        _sendCommand('MUSIC_ON',0);
+      } else {
+        _sendCommand('MUSIC_OFF',0);
+      }
+    });
+  }
+
+  void _togglePlatform() {
+    setState(() {
+      _platformExtended = !_platformExtended;
+      _stateMessage = _platformExtended 
+          ? "Platform EXTENDED" 
+          : "Platform SHORTENED";
+      // Here you would actually send the appropriate command to your device
+      // For example:
+      if (_platformExtended) {
+        _sendCommand('EXTEND_PLATFORM',0);
+      } else {
+        _sendCommand('SHORTEN_PLATFORM',0);
+      }
+
+
+    });
+  }
   Color _getButtonColor(String command) {
     if (_buttonFlashing[command] == true && _isFlashing[command] == true) {
       return Colors.yellow;
@@ -320,6 +351,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                                        // Music toggle button
                     ElevatedButton(
                                          onPressed: () {
                         if (_isConnected) {
@@ -334,13 +366,16 @@ class _MyHomePageState extends State<MyHomePage> {
                         backgroundColor: _getButtonColor('LEFT SIGNAL'),
                         foregroundColor: Colors.black,
                       ),
+                      
                       child: const Icon(
                         Icons.arrow_left,
                         color: Color(0xFFB8860B),
                         size: 40,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                   
+                    
+                    const SizedBox(width: 20),
                     ElevatedButton(
                       onPressed: () {
                         if (_isConnected) {
@@ -361,7 +396,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         size: 40,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 20),
                     ElevatedButton(
                       onPressed: () {
                         if (_isConnected) {
@@ -382,8 +417,41 @@ class _MyHomePageState extends State<MyHomePage> {
                         size: 40,
                       ),
                     ),
+                    
+                    
+                      
                   ],
                 ),
+                Row(
+                   mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                  ElevatedButton(
+                      onPressed: _isConnected ? _toggleMusic : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _musicOn ? Colors.green : Colors.white,
+                        foregroundColor: Colors.black,
+                      ),
+                      child: Icon(
+                        _musicOn ? Icons.music_note : Icons.music_off,
+                        size: 40,
+                        color: _musicOn ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    
+                    ElevatedButton(
+                      onPressed: _isConnected ? _togglePlatform : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _platformExtended ? Colors.blue : Colors.white,
+                        foregroundColor: Colors.black,
+                      ),
+                      child: Icon(
+                        _platformExtended ? Icons.zoom_out_map : Icons.zoom_in_map,
+                        size: 40,
+                        color: _platformExtended ? Colors.white : Colors.black,
+                      ),
+                    ),
+                ],)
               ],
             ),
           ),
