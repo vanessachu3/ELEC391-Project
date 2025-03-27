@@ -172,9 +172,6 @@ void setup()
   IMU_init();
 
   currMillis = millis();
-
-  flagL = 0;
-  flagR = 1;
 }
 
 void loop()

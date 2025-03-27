@@ -5,11 +5,11 @@
 bool serialCommandReady = false;
 String inputString = "";
 PID_t pid;
-#define MAX_PIDOUT 1.0
-#define MIN_PIDOUT -1.0
-float  kpIncrement = 0.000001;
-float  kiIncrement = 0.000001;
-float  kdIncrement = 0.000001;
+#define MAX_PIDOUT 255.0
+#define MIN_PIDOUT -255.0
+float  kpIncrement = 1;
+float  kiIncrement = 0.1;
+float  kdIncrement = 0.01;
 #define NUMDIGITS 9
 
 void processSerialInput(PID_t *pid) {
@@ -43,6 +43,7 @@ void processSerialInput(PID_t *pid) {
       else if (inputString.equals("a") || inputString.equals("A")) {
         pid->kp -= kpIncrement;
         Serial.print("Kp decreased to: ");
+        if (pid->kp < 0) pid->kp = 0;
         Serial.println(pid->kp, NUMDIGITS);
       }
       else if (inputString.equals("e") || inputString.equals("E")) {
@@ -99,6 +100,17 @@ void processSerialInput(PID_t *pid) {
         Serial.print("Kd increment decreased to: ");
         Serial.println(kdIncrement, NUMDIGITS);
       }
+      else if (inputString.equals("t") || inputString.equals("T")) {
+        pid->desiredAngle += 0.1;
+        Serial.print("Desired angle increased to: ");
+        Serial.println(pid->desiredAngle, NUMDIGITS);
+      }
+        else if (inputString.equals("g") || inputString.equals("G")) {
+            pid->desiredAngle -= 0.1;
+            Serial.print("Desired angle decreased to: ");
+            Serial.println(pid->desiredAngle, NUMDIGITS);
+        }
+      
 
       // else if (inputString.startsWith("s") || inputString.startsWith("S")) {
       //   // Set Kp to specific value: format "p=25.5"
@@ -146,8 +158,9 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     pid->pTerm = pid->kp * pid->e0; // kp * e[k]
 
     // Integral term with anti-windup
-    pid->iTemp += (pid->e0+pid->e1) * pid->Ts/2; // e_i[k-1] + Ts/2 ( e[k-1] + e[k])
-    const float maxIntegral = 1.0;
+    //pid->iTemp += (pid->e0+pid->e1) * pid->Ts/2; // e_i[k-1] + Ts/2 ( e[k-1] + e[k])
+    pid->iTemp += pid->e0*pid->Ts; // e_i[k-1] + Ts * e[k]
+    const float maxIntegral = 10;
     if (pid->iTemp > maxIntegral) pid->iTemp = maxIntegral;
     else if (pid->iTemp < -maxIntegral) pid->iTemp = -maxIntegral;
     
@@ -158,7 +171,7 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     float dRaw = 0.0;
     if (pid->Ts <=0)
     {
-        pid->Ts = 1/99.86;
+        pid->Ts = 1/99.84;
     }
     dRaw = (pid->e0 - pid->e1) / pid->Ts;
 
@@ -171,16 +184,23 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     pid->u0 = pid->pTerm + pid->iTerm + pid->dTerm;
 
     // Safety shut-off for large angles
-    if (fabs(angle) > 37.0) {
+    if (angle > 40.0 || angle < -37.0) {
         pid->u0 = 0.0;
     }
+    //else if(angle < pid->desiredAngle + 0.5 && angle > pid->desiredAngle - 0.5)
+    //{
+    //
+    //    pid->u0 = 0.0;
+    //}
 
     // Output saturation (limit to -1 to 1)
     if (pid->u0 > MAX_PIDOUT) pid->u0 = MAX_PIDOUT;
     else if (pid->u0 < MIN_PIDOUT) pid->u0 = MIN_PIDOUT;
 }
 
-
+void updateDesiredAngle(PID_t *pid, float angle) {
+    pid->desiredAngle = angle;
+}
 
 float getOutputPID(PID_t *pid)
 {

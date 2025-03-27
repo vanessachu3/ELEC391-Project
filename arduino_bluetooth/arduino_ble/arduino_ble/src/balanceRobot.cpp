@@ -6,10 +6,9 @@ float accAngle, gyrAngle = 0, currAngle, prevAngle = 0; // initialize accAngle a
 float gyrPrev = 0;                                      // initialize gyroscope integration constant
 float gyrSampleRate;                                    // gyroscope sample rate
 
-float k = 0.8;                                          // filter coefficient
+float k = 0.98;                                          // filter coefficient
 
 #define MAXPWM 255
-
 float getAngleSetup()
 {
     Serial.begin(BAUD);
@@ -22,6 +21,9 @@ float getAngleSetup()
       gyrSampleRate = IMU.gyroscopeSampleRate();          // acquire sample rate for gyroscope angle
       Serial.println("Gyro sample rate");
       Serial.println(gyrSampleRate);
+      delay(1000);
+      IMU.readAcceleration(ax, ay, az);
+      gyrPrev = atan2(ay, az)*180/PI;
       return gyrSampleRate;
 }
 float getAngle(float gyrSampleRate)
@@ -30,21 +32,30 @@ float getAngle(float gyrSampleRate)
     {
       IMU.readAcceleration(ax, ay, az);
       IMU.readGyroscope(gx, gy, gz);
+
+      
   
       // calculate accelerometer angle
       accAngle = atan2(ay, az)*180/PI;
-  
+      //Serial.println(accAngle);
+      
       // calculate gyroscope angle
-      gyrAngle = gyrPrev - gx/gyrSampleRate;
-      if(accAngle < 0.25 && accAngle > -0.25)
-      {
-        gyrAngle = 0;
-      }
+      gyrAngle = gyrPrev - gx*gyrSampleRate;
+      
+      
       gyrPrev = gyrAngle;
-  
+      //Serial.println(gyrAngle);
+      
       // calculate filtered angle
-      currAngle = k*(prevAngle - gx/gyrSampleRate)+(1-k)*accAngle;
-      prevAngle = currAngle; 
+      if(abs(accAngle)<0.25)
+      {
+        gyrAngle = accAngle;
+      }
+      else{
+      currAngle = k*(gyrAngle)+(1-k)*accAngle;
+      }
+      //Serial.println(currAngle);
+      //prevAngle = currAngle; 
     }
     return currAngle; 
 }

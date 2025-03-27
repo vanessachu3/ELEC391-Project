@@ -3,9 +3,9 @@
 typedef struct
 {
     // tune these parameters
-    float kp = 0.038927961;//0.038950; // 0.05;
-    float ki = 0.000002740;//0.003000; // 0.005;
-    float kd = 0.000002020;//0.000000030; // 0.01;
+    float kp = 9;
+    float ki = 55;
+    float kd = 0.2;
     float Ts = 1/99.8; //gyro sample rate
     float e1, e0, u0  = 0; //e[k-1], e[k], u[k]
     float angleRead=0;
@@ -16,12 +16,11 @@ typedef struct
     float dTerm = 0; //kd * ( ef[k] - ef[k-1])/Ts
     float iTemp = 0;
     float dTemp = 0;
-    //float tau = 20*Ts;
-    float filterCoeff = 0.4;
+    float filterCoeff = 1;
 } PID_t;
 extern PID_t pid;
 void updatePID(PID_t * pid, double angle,float sampleSec);
 float getOutputPID(PID_t *pid);
-
+void updateDesiredAngle(PID_t *pid, float angle);
 void processSerialInput(PID_t *pid);
 #endif

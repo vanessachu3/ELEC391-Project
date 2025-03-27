@@ -1,4 +1,4 @@
-#if 0
+#if 1
 #include "BLESetup.h"
 
 #define BUFFER_SIZE 20
