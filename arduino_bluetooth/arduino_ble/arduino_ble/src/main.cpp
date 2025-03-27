@@ -9,6 +9,8 @@
 #include <actuator.h>
 #include <audio.h>
 
+#include <Arduino_APDS9960.h>
+
 #if 1
 //==========================================================
 // Signal variables/functions
@@ -21,9 +23,12 @@ void sigL();
 void sigR();
 void sigOff();
 
+void checkLights();
+
 // turn signal GPIO pins
 #define pinL    D4
 #define pinR    D3
+#define pinH    D2
 
 // global flags for turn signals
 bool flagL = 0;
@@ -31,8 +36,15 @@ bool flagR = 0;
 
 void SIG_init()
 {
+    if(!APDS.begin())
+    {
+      Serial.println("Failed to initialize APDS!");
+      while(1);
+    }
+    
     pinMode(pinL, OUTPUT);
     pinMode(pinR, OUTPUT);
+    pinMode(pinH, OUTPUT);
 }
 
 void sigL()
@@ -55,6 +67,20 @@ void sigOff()
 {
   flagL = 0;
   flagR = 0;
+}
+
+void checkLights()      // call checkLights in loop()
+{
+  if(APDS.colorAvailable())
+  {
+    int r, g, b, a;
+    APDS.readColor(r, g, b, a);
+
+    if(a > 0 && a < 15)
+      digitalWrite(pinH, HIGH);
+    else
+      digitalWrite(pinH, LOW);
+  }
 }
 //==========================================================
 // TIMERS (must be initialized in main.cpp)
@@ -127,6 +153,8 @@ void loop() {
 
     // Keep running while connected
     while (central.connected()) {
+
+      checkLights();
 
       float sampleSec = (millis() - currMillis)/1000.0f;
       currMillis = millis();
