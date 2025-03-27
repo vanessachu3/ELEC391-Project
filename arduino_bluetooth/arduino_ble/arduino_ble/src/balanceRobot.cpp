@@ -47,9 +47,9 @@ float getAngle(float gyrSampleRate)
       //Serial.println(gyrAngle);
       
       // calculate filtered angle
-      if(abs(accAngle)<0.25)
+      if(abs(accAngle)<0.35)
       {
-        gyrAngle = accAngle;
+        gyrAngle = 0;
       }
       else{
       currAngle = k*(gyrAngle)+(1-k)*accAngle;

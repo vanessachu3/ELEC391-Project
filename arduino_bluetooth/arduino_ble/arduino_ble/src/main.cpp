@@ -124,6 +124,7 @@ void loop() {
 
     // Keep running while connected
     while (central.connected()) {
+
       float sampleSec = (millis() - currMillis)/1000.0f;
       currMillis = millis();
       //Serial.println(sampleSec);
@@ -132,6 +133,7 @@ void loop() {
       //Serial.println(angle);
       balance(&pid,angle,sampleSec);
       processSerialInput(&pid);
+
       // Check if the characteristic was written
       if (customCharacteristic.written()) {
        // Get the length of the received data
@@ -156,7 +158,7 @@ void loop() {
         //TODO: SCALE SPEED WRT JOYSTICK POSITION
         moveRobotCommand(receivedString, distance*255.0, &pid);
 
-        //TODO: ADD LEFT/RIGHT/HAZARD SIGNALS
+        //LEFT/RIGHT/HAZARD SIGNALS
         if (strcmp(receivedString, "LEFT SIGNAL") == 0) {
           flagL = 1;
         }
