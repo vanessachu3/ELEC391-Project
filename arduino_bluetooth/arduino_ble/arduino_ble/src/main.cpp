@@ -6,7 +6,10 @@
 #include <PWM.h>
 #include <balanceRobot.h>
 #include <pid.h>
+#include <actuator.h>
+#include <audio.h>
 
+#if 1
 //==========================================================
 // Signal variables/functions
 //==========================================================
@@ -90,7 +93,7 @@ void TIMERF_init()
     ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigL);
     ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigR);
 }
-
+#endif
 float gyroTs = 0.01;
 float currMillis;
 void setup() {
@@ -157,7 +160,7 @@ void loop() {
         float distance = atof(distanceStr);
         //TODO: SCALE SPEED WRT JOYSTICK POSITION
         moveRobotCommand(receivedString, distance*255.0, &pid);
-
+        
         //LEFT/RIGHT/HAZARD SIGNALS
         if (strcmp(receivedString, "LEFT SIGNAL") == 0) {
           flagL = 1;
@@ -173,6 +176,10 @@ void loop() {
           sigOff();
         }
 
+        //PLATFROM EXTENSION
+        actuatorLoop(receivedString);
+        //AUDIO PLAYBACK
+        play_music(receivedString);
         // Optionally, respond by updating the characteristic's value
         customCharacteristic.writeValue("Data received");
       }
