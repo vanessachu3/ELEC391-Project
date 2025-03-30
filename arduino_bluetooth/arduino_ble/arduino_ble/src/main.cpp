@@ -13,6 +13,67 @@
 
 #if 1
 //==========================================================
+// Music variables/functions
+//==========================================================
+volatile bool musicFlag = false;
+int noteIndex = 0;
+void playNote();
+int ice_cream_song[] = {
+  NOTE_C5, NOTE_AS4, 
+  NOTE_GS4, NOTE_GS4, NOTE_AS4, 
+  NOTE_GS4, NOTE_DS4, NOTE_C4, NOTE_CS4,
+  NOTE_DS4, NOTE_F4, NOTE_DS4, NOTE_C4,
+  NOTE_DS4, NOTE_GS4, NOTE_AS4,
+  NOTE_C5, NOTE_C5,
+  NOTE_C5, NOTE_AS4, NOTE_GS4, NOTE_AS4,
+  NOTE_C5, NOTE_AS4, 
+  NOTE_AS4, NOTE_C5, NOTE_AS4,
+  NOTE_GS4, NOTE_GS4, NOTE_AS4,
+  NOTE_GS4, NOTE_DS4, NOTE_C4, NOTE_CS4,
+  NOTE_DS4, NOTE_F4, NOTE_DS4, NOTE_C4,
+  NOTE_DS4, NOTE_GS4, NOTE_AS4,
+  NOTE_C5, NOTE_DS5, NOTE_DS5, NOTE_F5,
+  NOTE_DS5, NOTE_C5, NOTE_GS4, NOTE_AS4,
+  NOTE_C5, NOTE_AS4, 
+  NOTE_GS4
+};
+// 4 = quarter note, 8 = eighth note, etc.
+int note_duration[] = {
+  8, 8,
+  4, 8, 8,
+  8, 8, 8, 8,
+  8, 8, 8, 8,
+  4, 8, 8,
+  4, 4,
+  8, 8, 8, 8,
+  4, 4,
+  4, 8, 8,
+  4, 8, 8, 
+  8, 8, 8, 8,
+  8, 8, 8, 8,
+  4, 8, 8,
+  8, 8, 8, 8,
+  8, 8, 8, 8,
+  4, 4, 
+  4
+};
+void playNote()
+{
+    if(musicFlag)
+    {
+      if (noteIndex >= sizeof(ice_cream_song)/sizeof(ice_cream_song[0]))
+        noteIndex = 0;
+      tone(speaker_pin, ice_cream_song[noteIndex], 1000/note_duration[noteIndex]);
+      delay(1000/note_duration[noteIndex] * 1.30);
+      noteIndex++;
+    }
+    else{
+      noTone(speaker_pin);
+      noteIndex = 0;
+    }
+}
+#define TIMER_MUSIC_INTERVAL 325L
+//==========================================================
 // Signal variables/functions
 //==========================================================
 
@@ -29,6 +90,7 @@ void checkLights();
 #define pinL    D4
 #define pinR    D3
 #define pinH    D2
+
 
 // global flags for turn signals
 bool flagL = 0;
@@ -69,6 +131,7 @@ void sigOff()
   flagR = 0;
 }
 
+#define CHECKLIGHT_MIN 16
 void checkLights()      // call checkLights in loop()
 {
   if(APDS.colorAvailable())
@@ -76,7 +139,7 @@ void checkLights()      // call checkLights in loop()
     int r, g, b, a;
     APDS.readColor(r, g, b, a);
 
-    if(a > 0 && a < 15)
+    if(a > 0 && a < CHECKLIGHT_MIN)
       digitalWrite(pinH, HIGH);
     else
       digitalWrite(pinH, LOW);
@@ -118,16 +181,25 @@ void TIMERF_init()
 
     ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigL);
     ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigR);
+    ISR_Timer.setInterval(TIMER_MUSIC_INTERVAL, playNote);
 }
 #endif
 float gyroTs = 0.01;
 float currMillis;
+#define SAMPLEAVG 50
+
 void setup() {
+  #if 1
   setupBLE();
+  #endif
   gyroTs = getAngleSetup();
   currMillis = millis();
   SIG_init();
   TIMERF_init();
+  audioSetup();
+  actuatorSetup();
+  
+  musicFlag = 1;
 }
 
 void loop() {
@@ -138,14 +210,18 @@ void loop() {
   currMillis = millis();
   //Serial.println(sampleSec);
   //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
-  float angle = getAngle(sampleSec);
+  float angle = getAngle(&pid, sampleSec);
   //Serial.println(angle);
+
+  //BALANCE ROBOT
   balance(&pid,angle,sampleSec);
+
+  //actuatorLoop("EXTEND_PLATFORM");
+  //delay(1500);
   processSerialInput(&pid);
-  //Serial.println(angle);
+  //Serial.println(angle);  
   
-  
-#if 1
+#if 0
   if (central) {
     Serial.print("Connected to central: ");
     Serial.println(central.address());
@@ -160,10 +236,10 @@ void loop() {
       currMillis = millis();
       //Serial.println(sampleSec);
       //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
-      float angle = getAngle(sampleSec);
+      float angle = getAngle(&pid, sampleSec);
       //Serial.println(angle);
       balance(&pid,angle,sampleSec);
-      processSerialInput(&pid);
+      //processSerialInput(&pid);
 
       // Check if the characteristic was written
       if (customCharacteristic.written()) {
@@ -203,6 +279,14 @@ void loop() {
         else if (strcmp(receivedString, "STOP") == 0) {
           sigOff();
         }
+      //float sampleSec = (millis() - currMillis)/1000.0f;
+      //currMillis = millis();
+      ////Serial.println(sampleSec);
+      ////TODO: ROBOT SHOULD BE ACTIVELY BALANCING
+      //float angle = getAngle(&pid, sampleSec);
+      ////Serial.println(angle);
+      //balance(&pid,angle,sampleSec);
+      //processSerialInput(&pid);
 
         //PLATFROM EXTENSION
         actuatorLoop(receivedString);
@@ -211,7 +295,17 @@ void loop() {
         // Optionally, respond by updating the characteristic's value
         customCharacteristic.writeValue("Data received");
       }
-
+      else
+      {sampleSec = (millis() - currMillis)/1000.0f;
+      currMillis = millis();
+      //Serial.println(sampleSec);
+      //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
+      //updateDesiredAngle(&pid,-0.5);
+      angle = getAngle(&pid, sampleSec);
+      //Serial.println(angle);
+      balance(&pid,angle,sampleSec);
+      processSerialInput(&pid);
+}
     }
 
     digitalWrite(LED_BUILTIN, LOW); // Turn off LED when disconnected

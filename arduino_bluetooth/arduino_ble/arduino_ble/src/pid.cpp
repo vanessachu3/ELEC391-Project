@@ -11,7 +11,7 @@ float  kpIncrement = 1;
 float  kiIncrement = 0.1;
 float  kdIncrement = 0.01;
 #define NUMDIGITS 9
-
+int errors[5] = {0, 0, 0, 0, 0};
 void processSerialInput(PID_t *pid) {
     if (Serial.available() > 0) {
       Serial.println("*");
@@ -158,9 +158,9 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     pid->pTerm = pid->kp * pid->e0; // kp * e[k]
 
     // Integral term with anti-windup
-    //pid->iTemp += (pid->e0+pid->e1) * pid->Ts/2; // e_i[k-1] + Ts/2 ( e[k-1] + e[k])
-    pid->iTemp += pid->e0*pid->Ts; // e_i[k-1] + Ts * e[k]
-    const float maxIntegral = 10;
+    pid->iTemp += (pid->e0+pid->e1) * pid->Ts/2; // e_i[k-1] + Ts/2 ( e[k-1] + e[k])
+    //pid->iTemp +=  pid->e0*pid->Ts; // e_i[k-1] + Ts * e[k]
+    float maxIntegral = 15;
     if (pid->iTemp > maxIntegral) pid->iTemp = maxIntegral;
     else if (pid->iTemp < -maxIntegral) pid->iTemp = -maxIntegral;
     
@@ -176,7 +176,7 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     dRaw = (pid->e0 - pid->e1) / pid->Ts;
 
     // Apply a low-pass filter using the filter coefficient
-    pid->dTemp = pid->filterCoeff * dRaw + (1 - pid->filterCoeff) * pid->dTemp;
+    pid->dTemp = pid->filterCoeff * dRaw; + (1 - pid->filterCoeff) * pid->dTemp;
 
     pid->dTerm = pid->kd * pid->dTemp;
 
@@ -184,7 +184,7 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     pid->u0 = pid->pTerm + pid->iTerm + pid->dTerm;
 
     // Safety shut-off for large angles
-    if (angle > 40.0 || angle < -37.0) {
+    if (angle > 37.0 || angle < -37.0) {
         pid->u0 = 0.0;
     }
     //else if(angle < pid->desiredAngle + 0.5 && angle > pid->desiredAngle - 0.5)
@@ -193,9 +193,15 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     //    pid->u0 = 0.0;
     //}
 
-    // Output saturation (limit to -1 to 1)
+    // Output saturation
     if (pid->u0 > MAX_PIDOUT) pid->u0 = MAX_PIDOUT;
     else if (pid->u0 < MIN_PIDOUT) pid->u0 = MIN_PIDOUT;
+
+    //else if (pid->e0 < 0.05 && pid->e0 > -0.05)
+    //{
+    //    pid->u0 = 0.0;
+    //}
+    //Serial.println(pid->angleRead);
 }
 
 void updateDesiredAngle(PID_t *pid, float angle) {

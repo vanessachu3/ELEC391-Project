@@ -21,22 +21,20 @@ float getAngleSetup()
       gyrSampleRate = IMU.gyroscopeSampleRate();          // acquire sample rate for gyroscope angle
       Serial.println("Gyro sample rate");
       Serial.println(gyrSampleRate);
-      delay(1000);
+      delay(100);
       IMU.readAcceleration(ax, ay, az);
       gyrPrev = atan2(ay, az)*180/PI;
       return gyrSampleRate;
 }
-float getAngle(float gyrSampleRate)
+float getAngle(PID_t *pid, float gyrSampleRate)
 {
     if(IMU.accelerationAvailable() && IMU.gyroscopeAvailable())
     {
       IMU.readAcceleration(ax, ay, az);
       IMU.readGyroscope(gx, gy, gz);
 
-      
-  
       // calculate accelerometer angle
-      accAngle = atan2(ay, az)*180/PI;
+      accAngle = atan(ay/az)*180/PI;//+0.2;
       //Serial.println(accAngle);
       
       // calculate gyroscope angle
@@ -47,17 +45,24 @@ float getAngle(float gyrSampleRate)
       //Serial.println(gyrAngle);
       
       // calculate filtered angle
-      if(abs(accAngle)<0.35)
+      if(abs(abs(accAngle)+abs(pid->desiredAngle))<0.25)
       {
-        gyrAngle = 0;
+       gyrAngle = pid->desiredAngle;
       }
-      else{
+      
       currAngle = k*(gyrAngle)+(1-k)*accAngle;
-      }
+      
+      //Serial.println(currAngle);
+
+
       //Serial.println(currAngle);
       //prevAngle = currAngle; 
-    }
+    
+    //else{
+    //  Serial.println("IMU not available");
+    //}
     return currAngle; 
+    }
 }
 void PWMfwrd(float scaleFactor) {
   
@@ -78,8 +83,10 @@ void balance(PID_t *pid, float currAngle,float sampleSec)
     if (pidOut < 0)
     {
       PWMbkwrd(-pidOut);
+      //PWMbkwrd(0);
     }
     else{
+      //PWMfwrd(0);
       PWMfwrd(pidOut);
     }
     //Serial.print(pidOut);

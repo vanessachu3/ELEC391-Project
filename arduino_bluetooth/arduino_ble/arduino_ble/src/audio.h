@@ -1,6 +1,7 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 #include <Arduino.h>
+#define speaker_pin A7 //TO BE CHANGED
 #if 1
 #define NOTE_B0  31
 #define NOTE_C1  33
@@ -93,6 +94,8 @@
 #define NOTE_DS8 4978
 #endif
 
+
 void audioSetup();
-void play_music(const char* command);
+//void play_music(const char* command);
+void kill_music();
 #endif

@@ -28,19 +28,21 @@ void moveRobotCommand(const char* direction, float scaleFactor, PID_t *pid) {
 
     if (strcmp(direction, "FORWARD") == 0) {
         //setMotorPWM(255, complementSignal, 255, complementSignal); //slow decay
-        updateDesiredAngle(pid,-2.5);
+        updateDesiredAngle(pid,-3);
     } 
     else if (strcmp(direction, "BACKWARDS") == 0) {
         //setMotorPWM(complementSignal, 255, complementSignal, 255); //slow
-        updateDesiredAngle(pid,2.5);
+        updateDesiredAngle(pid,3);
     } 
-    #if 0 
+    #if 1
     else if (strcmp(direction, "LEFT") == 0) {
-        setMotorPWM(0, complementSignal, complementSignal, 0);
+        setMotorPWM(255, complementSignal*0.5, complementSignal, 255);
     } 
     else if (strcmp(direction, "RIGHT") == 0) {
-        setMotorPWM(scaleFactor, 0, 0, scaleFactor);
+        setMotorPWM(complementSignal, 255, 255, complementSignal*0.5);
     } 
+    #endif
+    #if 0
     else if (strcmp(direction, "FORWARD LEFT") == 0) {
         setMotorPWM(0.5 * scaleFactor, 0, scaleFactor, 0);
     } 
