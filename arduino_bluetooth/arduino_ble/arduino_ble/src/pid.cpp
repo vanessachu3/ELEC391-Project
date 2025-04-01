@@ -8,10 +8,10 @@ PID_t pid;
 #define MAX_PIDOUT 255.0
 #define MIN_PIDOUT -255.0
 float  kpIncrement = 1;
-float  kiIncrement = 0.1;
+float  kiIncrement = 1;
 float  kdIncrement = 0.01;
 #define NUMDIGITS 9
-int errors[5] = {0, 0, 0, 0, 0};
+
 void processSerialInput(PID_t *pid) {
     if (Serial.available() > 0) {
       Serial.println("*");
@@ -127,8 +127,8 @@ void processSerialInput(PID_t *pid) {
         Serial.print(pid->u0, NUMDIGITS);
         Serial.print(", Angle=");
         Serial.print(pid->angleRead, NUMDIGITS);
-        Serial.print(", Filter=");
-        Serial.println(pid->filterCoeff, NUMDIGITS);
+        Serial.print(", Desired Angle=");
+        Serial.println(pid->desiredAngle, NUMDIGITS);
         Serial.print("Kp=");
         Serial.print(pid->kp, NUMDIGITS);
         Serial.print(", Ki=");
@@ -149,7 +149,10 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     // Update previous error and output values
     pid->e1 = pid->e0; //e[k-1]
     pid->Ts = sampleSec; //Ts
-
+    if (pid->Ts <=0)
+    {
+        pid->Ts = 1.0/99.84;
+    }
     // Calculate current error
     pid->angleRead = angle; 
     pid->e0 = pid->desiredAngle - pid->angleRead; //e[k]
@@ -157,10 +160,13 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     // Proportional term
     pid->pTerm = pid->kp * pid->e0; // kp * e[k]
 
+  
     // Integral term with anti-windup
-    pid->iTemp += (pid->e0+pid->e1) * pid->Ts/2; // e_i[k-1] + Ts/2 ( e[k-1] + e[k])
-    //pid->iTemp +=  pid->e0*pid->Ts; // e_i[k-1] + Ts * e[k]
-    float maxIntegral = 15;
+
+      pid->iTemp += (pid->e0) * pid->Ts;
+  
+
+    float maxIntegral = 15.0;
     if (pid->iTemp > maxIntegral) pid->iTemp = maxIntegral;
     else if (pid->iTemp < -maxIntegral) pid->iTemp = -maxIntegral;
     
@@ -169,14 +175,11 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
     // Derivative term
     // Compute the raw derivative
     float dRaw = 0.0;
-    if (pid->Ts <=0)
-    {
-        pid->Ts = 1/99.84;
-    }
+    
     dRaw = (pid->e0 - pid->e1) / pid->Ts;
 
     // Apply a low-pass filter using the filter coefficient
-    pid->dTemp = pid->filterCoeff * dRaw; + (1 - pid->filterCoeff) * pid->dTemp;
+    pid->dTemp = dRaw;
 
     pid->dTerm = pid->kd * pid->dTemp;
 
@@ -207,6 +210,20 @@ void updatePID(PID_t *pid, double angle, float sampleSec) {
 void updateDesiredAngle(PID_t *pid, float angle) {
     pid->desiredAngle = angle;
 }
+
+void updateDesiredAngleCommmand(PID_t *pid, const char* command) {
+    // Parse the command to extract the desired angle
+    if (strcmp(command, "INCREASE") == 0) {
+        pid->desiredAngle += 0.2;
+    }
+    else if((strcmp(command, "DECREASE") == 0)) {
+        pid->desiredAngle -= 0.2;
+    }
+    else if(strcmp(command,"DEFAULT") == 0){
+        pid->desiredAngle = DESIRED_ANGLE;
+    }
+}
+
 
 float getOutputPID(PID_t *pid)
 {

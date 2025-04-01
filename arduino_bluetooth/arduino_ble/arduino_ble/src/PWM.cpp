@@ -11,9 +11,9 @@ void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd)
     analogWrite(RIGHTWHEEL_FWRD,  rightFwd);
     analogWrite(RIGHTWHEEL_BKWRD, rightBkwd);
 }
-void moveRobot(const char* direction, float scaleFactor){
-    scaleFactor = (scaleFactor >= 255) ? 255.0 : scaleFactor; // Restrict scaleFactor to 1.0 max
-    float complementSignal = 255.0 - scaleFactor;
+void moveRobot(const char* direction, float inputSignal){
+    inputSignal = (inputSignal >= 255) ? 255.0 : inputSignal; // Restrict inputSignal to 1.0 max
+    float complementSignal = 255.0 - inputSignal;
 
     if (strcmp(direction, "FORWARD") == 0) {
         setMotorPWM(255, complementSignal, 255, complementSignal); //slow decay
@@ -22,17 +22,17 @@ void moveRobot(const char* direction, float scaleFactor){
         setMotorPWM(complementSignal, 255, complementSignal, 255); //slow
     } 
 }
-void moveRobotCommand(const char* direction, float scaleFactor, PID_t *pid) {
-    scaleFactor = (scaleFactor >= 255) ? 255.0 : scaleFactor; // Restrict scaleFactor to 1.0 max
-    float complementSignal = 255.0 - scaleFactor;
+void moveRobotCommand(const char* direction, float inputSignal, PID_t *pid) {
+    inputSignal = (inputSignal >= 255) ? 255.0 : inputSignal; // Restrict inputSignal to 1.0 max
+    float complementSignal = 255.0 - inputSignal;
 
     if (strcmp(direction, "FORWARD") == 0) {
         //setMotorPWM(255, complementSignal, 255, complementSignal); //slow decay
-        updateDesiredAngle(pid,-3);
+        updateDesiredAngle(pid,-(3+abs(DESIRED_ANGLE)));
     } 
     else if (strcmp(direction, "BACKWARDS") == 0) {
         //setMotorPWM(complementSignal, 255, complementSignal, 255); //slow
-        updateDesiredAngle(pid,3);
+        updateDesiredAngle(pid,3+abs(DESIRED_ANGLE));
     } 
     #if 1
     else if (strcmp(direction, "LEFT") == 0) {
@@ -44,16 +44,16 @@ void moveRobotCommand(const char* direction, float scaleFactor, PID_t *pid) {
     #endif
     #if 0
     else if (strcmp(direction, "FORWARD LEFT") == 0) {
-        setMotorPWM(0.5 * scaleFactor, 0, scaleFactor, 0);
+        setMotorPWM(0.5 * inputSignal, 0, inputSignal, 0);
     } 
     else if (strcmp(direction, "FORWARD RIGHT") == 0) {
-        setMotorPWM(scaleFactor, 0, 0.5 * scaleFactor, 0);
+        setMotorPWM(inputSignal, 0, 0.5 * inputSignal, 0);
     } 
     else if (strcmp(direction, "BACKWARDS LEFT") == 0) {
-        setMotorPWM(0, 0.5 * scaleFactor, 0, scaleFactor);
+        setMotorPWM(0, 0.5 * inputSignal, 0, inputSignal);
     } 
     else if (strcmp(direction, "BACKWARDS RIGHT") == 0) {
-        setMotorPWM(0, scaleFactor, 0, 0.5 * scaleFactor);
+        setMotorPWM(0, inputSignal, 0, 0.5 * inputSignal);
     } 
     #endif
 

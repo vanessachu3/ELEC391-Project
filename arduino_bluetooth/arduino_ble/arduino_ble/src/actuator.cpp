@@ -1,42 +1,86 @@
 #include <actuator.h>
+#include <Servo.h>
+
+// Servo objects and pin definitions
 Servo myservo1;
 Servo myservo2;
-#define servoLeft   A5
-#define servoRight  A6
-void actuatorSetup(){
-    Serial.begin(BAUD);
+const uint8_t servoLeft = A0;
+const uint8_t servoRight = A1;
 
-    myservo1.attach(servoLeft);  // attaches the servo on pin 9 to the servo object
-    myservo2.attach(servoRight);
+// Actuator state management
+enum class PlatformState { IDLE, EXTENDING, SHORTENING };
+PlatformState platformState = PlatformState::IDLE;
+int currentPos1 = 0;
+int currentPos2 = 180;
+unsigned long lastServoUpdate = 0;
+const uint8_t SERVO_UPDATE_INTERVAL = 1; // ms
+
+void actuatorSetup() {
+    Serial.begin(BAUD);
     
-    if(myservo1.attached()){
-      Serial.println("actuator 1 attached");
-    }else{
-      Serial.println("actuator 1 not attached");
-    }
-  
-    if(myservo2.attached()){
-      Serial.println("actuator 2 attached");
-    }else{
-      Serial.println("actuator 2 not attached");
-    }
+    // Initialize servos with verification
+    bool servo1Attached = myservo1.attach(servoLeft);
+    bool servo2Attached = myservo2.attach(servoRight);
+    
+    // Initial position
+    myservo1.write(currentPos1);
+    myservo2.write(currentPos2);
+    
+    // Debug output
+    Serial.println(servo1Attached ? "Actuator 1 attached" : "Actuator 1 FAILED");
+    Serial.println(servo2Attached ? "Actuator 2 attached" : "Actuator 2 FAILED");
 }
 
-void actuatorLoop(const char* command){
-    if(strcmp(command, "EXTEND_PLATFORM") == 0){
-        for (int pos1 = 0, pos2 = 180; pos1 < 180 && pos2 > 0; pos1 += 1, pos2 -= 1) { // goes from 0 degrees to 180 degrees
-            myservo1.write(pos1);                // tell servo to go to position in variable 'pos'
-            myservo2.write(pos2);
-            delay(20);                         // waits 15ms for the servo to reach the position
-            Serial.println(pos1);
-        }
+void updateServoPositions() {
+    myservo1.write(currentPos1);
+    myservo2.write(currentPos2);
+    Serial.print(currentPos1);
+    Serial.print(" ");
+    Serial.println(currentPos2);
+}
+
+void actuatorLoop(const char* command) {
+    // Handle new commands
+    if (strcmp(command, "EXTEND_PLATFORM") == 0) {
+        platformState = PlatformState::EXTENDING;
+    } 
+    else if (strcmp(command, "SHORTEN_PLATFORM") == 0) {
+        platformState = PlatformState::SHORTENING;
     }
-    else if (strcmp(command, "SHORTEN_PLATFORM") == 0){
-        for (int pos1 = 180, pos2 = 0; pos1 > 0 && pos2 < 180; pos1 -= 1, pos2 += 1) { // goes from 180 degrees to 0 degrees
-            myservo1.write(pos1);                // tell servo to go to position in variable 'pos'
-            myservo2.write(pos2);
-            delay(20);                         // waits 15ms for the servo to reach the position
-        }
+    else if (strcmp(command, "STOP_PLATFORM") == 0) {
+        platformState = PlatformState::IDLE;
     }
 
+    // Non-blocking position update
+    if (platformState != PlatformState::IDLE && 
+        millis() - lastServoUpdate >= SERVO_UPDATE_INTERVAL) {
+        
+        lastServoUpdate = millis();
+        
+        switch (platformState) {
+            case PlatformState::EXTENDING:
+                if (currentPos1 < 180 && currentPos2 > 0) {
+                    currentPos1++;
+                    currentPos2--;
+                    updateServoPositions();
+                } else {
+                    platformState = PlatformState::IDLE;
+                }
+                break;
+                
+            case PlatformState::SHORTENING:
+                if (currentPos1 > 0 && currentPos2 < 180) {
+                    currentPos1--;
+                    currentPos2++;
+                    updateServoPositions();
+                } else {
+                    platformState = PlatformState::IDLE;
+                }
+                break;
+                
+            case PlatformState::IDLE:
+                // No action needed
+                break;
+        }
+    }
 }

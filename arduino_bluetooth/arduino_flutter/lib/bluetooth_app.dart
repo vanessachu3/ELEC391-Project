@@ -423,9 +423,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 ),
                 Row(
-                   mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                  ElevatedButton(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
                       onPressed: _isConnected ? _toggleMusic : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _musicOn ? Colors.green : Colors.white,
@@ -451,7 +451,47 @@ class _MyHomePageState extends State<MyHomePage> {
                         color: _platformExtended ? Colors.white : Colors.black,
                       ),
                     ),
-                ],)
+                ],),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                                         onPressed: () {
+                        if (_isConnected) {
+                          _sendCommand("INCREASE", 0);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        foregroundColor: Colors.black,
+                      ),
+                      
+                      child: const Icon(
+                        Icons.arrow_upward,
+                        color: Color(0xFFB8860B),
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    ElevatedButton(
+                                         onPressed: () {
+                        if (_isConnected) {
+                          _sendCommand("DECREASE", 0);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        foregroundColor: Colors.black,
+                      ),
+                      
+                      child: const Icon(
+                        Icons.arrow_downward,
+                        color: Color(0xFFB8860B),
+                        size: 40,
+                      ),
+                    ),
+                ],
+              )
               ],
             ),
           ),

@@ -8,5 +8,6 @@
 
 
 void actuatorSetup();
+void updateServoPositions();
 void actuatorLoop(const char* command);    
 #endif

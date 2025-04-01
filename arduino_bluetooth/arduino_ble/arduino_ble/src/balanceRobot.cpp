@@ -6,7 +6,7 @@ float accAngle, gyrAngle = 0, currAngle, prevAngle = 0; // initialize accAngle a
 float gyrPrev = 0;                                      // initialize gyroscope integration constant
 float gyrSampleRate;                                    // gyroscope sample rate
 
-float k = 0.98;                                          // filter coefficient
+const float k = 0.96;//0.98;                                          // filter coefficient
 
 #define MAXPWM 255
 float getAngleSetup()
@@ -23,7 +23,7 @@ float getAngleSetup()
       Serial.println(gyrSampleRate);
       delay(100);
       IMU.readAcceleration(ax, ay, az);
-      gyrPrev = atan2(ay, az)*180/PI;
+      gyrPrev = atan(ay/az )*180.0/PI;
       return gyrSampleRate;
 }
 float getAngle(PID_t *pid, float gyrSampleRate)
@@ -34,7 +34,7 @@ float getAngle(PID_t *pid, float gyrSampleRate)
       IMU.readGyroscope(gx, gy, gz);
 
       // calculate accelerometer angle
-      accAngle = atan(ay/az)*180/PI;//+0.2;
+      accAngle = atan(ay/az )*180.0/PI;//+0.2;
       //Serial.println(accAngle);
       
       // calculate gyroscope angle
@@ -63,6 +63,7 @@ float getAngle(PID_t *pid, float gyrSampleRate)
     //}
     return currAngle; 
     }
+    return 0;
 }
 void PWMfwrd(float scaleFactor) {
   
@@ -89,9 +90,12 @@ void balance(PID_t *pid, float currAngle,float sampleSec)
       //PWMfwrd(0);
       PWMfwrd(pidOut);
     }
-    //Serial.print(pidOut);
+    //Serial.print(pid->e1);
     //Serial.print(" ");
-    //Serial.println(currAngle);
+    //Serial.print(pid->e0);
+    //Serial.print(" ");
+    //Serial.print(pid->iTerm);
+    //Serial.print(" ");
     //Serial.println(currAngle);
     
 }

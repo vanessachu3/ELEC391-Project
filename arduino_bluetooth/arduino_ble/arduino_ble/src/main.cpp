@@ -8,7 +8,7 @@
 #include <pid.h>
 #include <actuator.h>
 #include <audio.h>
-
+#include <oled.h>
 #include <Arduino_APDS9960.h>
 
 #if 1
@@ -17,7 +17,6 @@
 //==========================================================
 volatile bool musicFlag = false;
 int noteIndex = 0;
-void playNote();
 int ice_cream_song[] = {
   NOTE_C5, NOTE_AS4, 
   NOTE_GS4, NOTE_GS4, NOTE_AS4, 
@@ -57,22 +56,58 @@ int note_duration[] = {
   4, 4, 
   4
 };
-void playNote()
-{
-    if(musicFlag)
-    {
-      if (noteIndex >= sizeof(ice_cream_song)/sizeof(ice_cream_song[0]))
-        noteIndex = 0;
-      tone(speaker_pin, ice_cream_song[noteIndex], 1000/note_duration[noteIndex]);
-      delay(1000/note_duration[noteIndex] * 1.30);
-      noteIndex++;
-    }
-    else{
+bool musicPlaying = false;
+bool stopRequested = false;
+unsigned long lastNoteTime = 0;
+int currentNote = 0;
+
+void playMusicNonBlocking() {
+  if (!musicPlaying) return;
+  
+  unsigned long currentTime = millis();
+  
+  // If it's time to play the next note
+  if (currentTime - lastNoteTime >= (1000/note_duration[currentNote] * 1.30)) {
+    noTone(speaker_pin); // Stop previous note
+    
+    if (stopRequested) {
+      musicPlaying = false;
+      stopRequested = false;
+      currentNote = 0;
       noTone(speaker_pin);
-      noteIndex = 0;
+      digitalWrite(speaker_pin, LOW);
+      return;
     }
+    
+    // Play current note
+    tone(speaker_pin, ice_cream_song[currentNote], 1000/note_duration[currentNote]);
+    
+    // Move to next note
+    currentNote++;
+    if (currentNote >= sizeof(ice_cream_song)/sizeof(ice_cream_song[0])) {
+      currentNote = 0; // Loop or set musicPlaying = false to stop
+    }
+    
+    lastNoteTime = currentTime;
+  }
 }
-#define TIMER_MUSIC_INTERVAL 325L
+
+void play_music(const char* command) {
+  if (strcmp(command, "MUSIC_ON") == 0) {
+    musicPlaying = true;
+    stopRequested = false;
+    currentNote = 0;
+    lastNoteTime = 0;
+  }
+  else if (strcmp(command, "MUSIC_OFF") == 0) {
+    noTone(speaker_pin);
+    if (musicPlaying) {
+      stopRequested = true;
+    } else {
+      noTone(speaker_pin);
+    }
+  }
+}
 //==========================================================
 // Signal variables/functions
 //==========================================================
@@ -181,7 +216,7 @@ void TIMERF_init()
 
     ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigL);
     ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigR);
-    ISR_Timer.setInterval(TIMER_MUSIC_INTERVAL, playNote);
+    //ISR_Timer.setInterval(TIMER_MUSIC_INTERVAL, playNote);
 }
 #endif
 float gyroTs = 0.01;
@@ -198,6 +233,7 @@ void setup() {
   TIMERF_init();
   audioSetup();
   actuatorSetup();
+  oLedSetup();
   
   musicFlag = 1;
 }
@@ -208,20 +244,19 @@ void loop() {
   
   float sampleSec = (millis() - currMillis)/1000.0f;
   currMillis = millis();
-  //Serial.println(sampleSec);
-  //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
+  
+  //ROBOT SHOULD BE ACTIVELY BALANCING
   float angle = getAngle(&pid, sampleSec);
-  //Serial.println(angle);
+  
 
   //BALANCE ROBOT
   balance(&pid,angle,sampleSec);
-
-  //actuatorLoop("EXTEND_PLATFORM");
-  //delay(1500);
+  Serial.println(angle);
   processSerialInput(&pid);
-  //Serial.println(angle);  
+  oLedLoop();
   
-#if 0
+  
+#if 1
   if (central) {
     Serial.print("Connected to central: ");
     Serial.println(central.address());
@@ -229,7 +264,7 @@ void loop() {
 
     // Keep running while connected
     while (central.connected()) {
-
+      oLedLoop();
       checkLights();
 
       float sampleSec = (millis() - currMillis)/1000.0f;
@@ -243,6 +278,7 @@ void loop() {
 
       // Check if the characteristic was written
       if (customCharacteristic.written()) {
+        oLedLoop();
        // Get the length of the received data
         int length = customCharacteristic.valueLength();
 
@@ -291,12 +327,16 @@ void loop() {
         //PLATFROM EXTENSION
         actuatorLoop(receivedString);
         //AUDIO PLAYBACK
+        
         play_music(receivedString);
+        //UPDATE ANGLE
+        updateDesiredAngleCommmand(&pid, receivedString);
         // Optionally, respond by updating the characteristic's value
         customCharacteristic.writeValue("Data received");
       }
       else
-      {sampleSec = (millis() - currMillis)/1000.0f;
+      {
+      sampleSec = (millis() - currMillis)/1000.0f;
       currMillis = millis();
       //Serial.println(sampleSec);
       //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
@@ -305,7 +345,10 @@ void loop() {
       //Serial.println(angle);
       balance(&pid,angle,sampleSec);
       processSerialInput(&pid);
+      oLedLoop();
 }
+actuatorLoop("");
+playMusicNonBlocking();
     }
 
     digitalWrite(LED_BUILTIN, LOW); // Turn off LED when disconnected
