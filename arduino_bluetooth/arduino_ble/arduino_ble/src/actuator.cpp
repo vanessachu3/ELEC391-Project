@@ -4,8 +4,8 @@
 // Servo objects and pin definitions
 Servo myservo1;
 Servo myservo2;
-const uint8_t servoLeft = A0;
-const uint8_t servoRight = A1;
+#define servoLeft  A0
+#define servoRight A1
 
 // Actuator state management
 enum class PlatformState { IDLE, EXTENDING, SHORTENING };
@@ -34,9 +34,9 @@ void actuatorSetup() {
 void updateServoPositions() {
     myservo1.write(currentPos1);
     myservo2.write(currentPos2);
-    Serial.print(currentPos1);
-    Serial.print(" ");
-    Serial.println(currentPos2);
+    //Serial.print(currentPos1);
+    //Serial.print(" ");
+    //Serial.println(currentPos2);
 }
 
 void actuatorLoop(const char* command) {

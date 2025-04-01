@@ -10,6 +10,7 @@
 #include <audio.h>
 #include <oled.h>
 #include <Arduino_APDS9960.h>
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #if 1
 //==========================================================
@@ -233,30 +234,55 @@ void setup() {
   TIMERF_init();
   audioSetup();
   actuatorSetup();
-  oLedSetup();
-  
-  musicFlag = 1;
+  #if 0
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;); // Don't proceed, loop forever
+  }
+
+  // Show initial display buffer contents on the screen --
+  // the library initializes this with an Adafruit splash screen.
+  display.display();
+  //delay(2000); // Pause for 2 seconds
+
+  // Clear the buffer
+  display.clearDisplay();
+  #endif
+
+  musicFlag = true;
 }
 
 void loop() {
   // Wait for a BLE central to connect
   BLEDevice central = BLE.central();
-  
-  float sampleSec = (millis() - currMillis)/1000.0f;
-  currMillis = millis();
-  
-  //ROBOT SHOULD BE ACTIVELY BALANCING
-  float angle = getAngle(&pid, sampleSec);
-  
 
-  //BALANCE ROBOT
-  balance(&pid,angle,sampleSec);
+  ///////////////////
+  // BALANCE ROBOT //
+  ///////////////////
+  float sampleSec = (millis() - currMillis) / 1000.0f;
+  currMillis = millis();
+  float angle = getAngle( & pid, sampleSec);
+  balance( & pid, angle, sampleSec);
   Serial.println(angle);
-  processSerialInput(&pid);
-  oLedLoop();
-  
-  
-#if 1
+  processSerialInput( & pid);
+
+  //lights and OLED
+  checkLights();
+  #if 0
+  float d_angle = getDesiredAngle( & pid);
+
+  display.clearDisplay();
+
+  display.setTextSize(1); // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE); // Draw white text
+  display.setCursor(0, 0); // Start at top-left corner
+  display.print(F("Desired Angle: "));
+  display.println(d_angle);
+
+  display.display();
+  #endif
+
+  #if 1
   if (central) {
     Serial.print("Connected to central: ");
     Serial.println(central.address());
@@ -264,26 +290,27 @@ void loop() {
 
     // Keep running while connected
     while (central.connected()) {
-      oLedLoop();
+      //oLedLoop();
       checkLights();
 
-      float sampleSec = (millis() - currMillis)/1000.0f;
+      ///////////////////
+      // BALANCE ROBOT //
+      ///////////////////
+      float sampleSec = (millis() - currMillis) / 1000.0f;
       currMillis = millis();
-      //Serial.println(sampleSec);
-      //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
-      float angle = getAngle(&pid, sampleSec);
-      //Serial.println(angle);
-      balance(&pid,angle,sampleSec);
-      //processSerialInput(&pid);
+      float angle = getAngle( & pid, sampleSec);
+      balance( & pid, angle, sampleSec);
+      Serial.println(angle);
+      processSerialInput( & pid);
 
       // Check if the characteristic was written
       if (customCharacteristic.written()) {
-        oLedLoop();
-       // Get the length of the received data
+        //oLedLoop();
+        // Get the length of the received data
         int length = customCharacteristic.valueLength();
 
         // Read the received data
-        const unsigned char* receivedData = customCharacteristic.value();
+        const unsigned char * receivedData = customCharacteristic.value();
 
         // Create a properly terminated string
         char receivedString[length + 1]; // +1 for null terminator
@@ -295,60 +322,46 @@ void loop() {
         Serial.println(receivedString);
 
         // Split the received string by the comma
-        char* direction = strtok(receivedString, ",");
-        char* distanceStr = strtok(NULL, ",");  // Get the distance part
+        char * direction = strtok(receivedString, ",");
+        char * distanceStr = strtok(NULL, ","); // Get the distance part
         float distance = atof(distanceStr);
         //TODO: SCALE SPEED WRT JOYSTICK POSITION
-        moveRobotCommand(receivedString, distance*255.0, &pid);
-        
+        moveRobotCommand(receivedString, distance * 255.0, & pid);
+
         //LEFT/RIGHT/HAZARD SIGNALS
         if (strcmp(receivedString, "LEFT SIGNAL") == 0) {
           flagL = 1;
-        }
-        else if (strcmp(receivedString, "RIGHT SIGNAL") == 0) {
+        } else if (strcmp(receivedString, "RIGHT SIGNAL") == 0) {
           flagR = 1;
-        }
-        else if (strcmp(receivedString, "HAZARD") == 0) {
+        } else if (strcmp(receivedString, "HAZARD") == 0) {
           flagL = 1;
           flagR = 1;
-        }
-        else if (strcmp(receivedString, "STOP") == 0) {
+        } else if (strcmp(receivedString, "STOP") == 0) {
           sigOff();
         }
-      //float sampleSec = (millis() - currMillis)/1000.0f;
-      //currMillis = millis();
-      ////Serial.println(sampleSec);
-      ////TODO: ROBOT SHOULD BE ACTIVELY BALANCING
-      //float angle = getAngle(&pid, sampleSec);
-      ////Serial.println(angle);
-      //balance(&pid,angle,sampleSec);
-      //processSerialInput(&pid);
 
         //PLATFROM EXTENSION
         actuatorLoop(receivedString);
         //AUDIO PLAYBACK
-        
+
         play_music(receivedString);
         //UPDATE ANGLE
-        updateDesiredAngleCommmand(&pid, receivedString);
+        updateDesiredAngleCommmand( & pid, receivedString);
         // Optionally, respond by updating the characteristic's value
         customCharacteristic.writeValue("Data received");
+      } else {
+        ///////////////////
+        // BALANCE ROBOT //
+        ///////////////////
+        float sampleSec = (millis() - currMillis) / 1000.0f;
+        currMillis = millis();
+        float angle = getAngle( & pid, sampleSec);
+        balance( & pid, angle, sampleSec);
+        Serial.println(angle);
+        processSerialInput( & pid);
       }
-      else
-      {
-      sampleSec = (millis() - currMillis)/1000.0f;
-      currMillis = millis();
-      //Serial.println(sampleSec);
-      //TODO: ROBOT SHOULD BE ACTIVELY BALANCING
-      //updateDesiredAngle(&pid,-0.5);
-      angle = getAngle(&pid, sampleSec);
-      //Serial.println(angle);
-      balance(&pid,angle,sampleSec);
-      processSerialInput(&pid);
-      oLedLoop();
-}
-actuatorLoop("");
-playMusicNonBlocking();
+      actuatorLoop("");
+      playMusicNonBlocking();
     }
 
     digitalWrite(LED_BUILTIN, LOW); // Turn off LED when disconnected
