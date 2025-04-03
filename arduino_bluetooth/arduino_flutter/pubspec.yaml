@@ -38,6 +38,7 @@ dependencies:
 
   flutter_reactive_ble: ^5.3.1
   flutter_joystick: ^0.2.1
+  gestures: ^1.0.0
 
 dev_dependencies:
   flutter_test:

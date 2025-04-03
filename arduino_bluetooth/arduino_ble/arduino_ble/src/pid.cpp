@@ -172,7 +172,7 @@ void updatePID(PID_t * pid, double angle, float sampleSec) {
   pid -> u0 = pid -> pTerm + pid -> iTerm + pid -> dTerm;
 
   // Safety shut-off for large angles
-  if (fabs(angle)>46) {
+  if (fabs(pid->angleRead)>46.0) {
    pid -> iTemp = 0.0;
    pid -> u0 = 0.0;
   }
@@ -201,10 +201,10 @@ float getDesiredAngle(PID_t * pid) {
 void updateDesiredAngleCommmand(PID_t * pid,
   const char * command) {
   // Parse the command to extract the desired angle
-  if (strcmp(command, "INCREASE") == 0) {
-    pid -> desiredAngle += 0.2;
-  } else if ((strcmp(command, "DECREASE") == 0)) {
-    pid -> desiredAngle -= 0.2;
+  if (strcmp(command, "FORWARD") == 0) {
+    pid->desiredAngle= -(3 + abs(DESIRED_ANGLE));
+  } else if ((strcmp(command, "BACKWARDS") == 0)) {
+    pid->desiredAngle= (3 + abs(DESIRED_ANGLE));
   } else if (strcmp(command, "DEFAULT") == 0) {
     pid -> desiredAngle = DESIRED_ANGLE;
   }

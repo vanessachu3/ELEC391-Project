@@ -325,11 +325,9 @@ void loop() {
         Serial.println(receivedString);
 
         // Split the received string by the comma
-        char * direction = strtok(receivedString, ",");
-        char * distanceStr = strtok(NULL, ","); // Get the distance part
-        float distance = atof(distanceStr);
+        
         //TODO: SCALE SPEED WRT JOYSTICK POSITION
-        moveRobotCommand(receivedString, distance * 255.0, & pid);
+        moveRobotCommand(receivedString, 0, & pid);
 
         //LEFT/RIGHT/HAZARD SIGNALS
         if (strcmp(receivedString, "LEFT SIGNAL") == 0) {

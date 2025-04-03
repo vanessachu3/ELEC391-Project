@@ -82,6 +82,6 @@ void balance(PID_t * pid, float currAngle, float sampleSec) {
   //Serial.print(pid->iTerm);
   //Serial.print(" ");
   //Serial.println(currAngle);
-  Serial.println(pid->u0);
+  //Serial.println(pid->u0);
 
 }
