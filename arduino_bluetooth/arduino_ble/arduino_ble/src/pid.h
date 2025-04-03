@@ -1,11 +1,11 @@
 #ifndef PID_H
 #define PID_H
-#define DESIRED_ANGLE 0.2
+#define DESIRED_ANGLE -0.8
 typedef struct
 {
     // tune these parameters
     float kp =9.0; //9;
-    float ki =55.0; //65;
+    float ki =62.0; //65;
     float kd =0.2; //0.2;
     float Ts = 1.0/99.8; //gyro sample rate
     float e1 = 0.0;

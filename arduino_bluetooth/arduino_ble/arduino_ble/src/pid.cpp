@@ -10,7 +10,7 @@ bool serialCommandReady = false;
 String inputString = "";
 PID_t pid;
 #define MAX_PIDOUT 255.0
-#define MIN_PIDOUT - 255.0
+#define MIN_PIDOUT -255.0
 float kpIncrement = 1;
 float kiIncrement = 1;
 float kdIncrement = 0.01;
@@ -152,7 +152,7 @@ void updatePID(PID_t * pid, double angle, float sampleSec) {
 
   pid -> iTemp += (pid -> e0) * pid -> Ts;
 
-  float maxIntegral = 15.0;
+  float maxIntegral = 10.0;
   pid -> iTemp = constrain(pid -> iTemp, -maxIntegral, maxIntegral);
 
   pid -> iTerm = pid -> ki * pid -> iTemp;
@@ -172,9 +172,9 @@ void updatePID(PID_t * pid, double angle, float sampleSec) {
   pid -> u0 = pid -> pTerm + pid -> iTerm + pid -> dTerm;
 
   // Safety shut-off for large angles
-  if (angle > 37.0 || angle < -37.0) {
-    pid -> iTemp = 0.0;
-    pid -> u0 = 0.0;
+  if (fabs(angle)>46) {
+   pid -> iTemp = 0.0;
+   pid -> u0 = 0.0;
   }
   //else if(angle < pid->desiredAngle + 0.5 && angle > pid->desiredAngle - 0.5)
   //{

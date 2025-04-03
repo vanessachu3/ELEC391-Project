@@ -10,14 +10,14 @@ BLECharacteristic customCharacteristic(
 
 void setupBLE() {
   Serial.begin(9600);
-  while (!Serial);
+  //while (!Serial);
 
   // Initialize the built-in LED to indicate connection status
   pinMode(LED_BUILTIN, OUTPUT);
 
   if (!BLE.begin()) {
-    Serial.println("Starting BLE failed!");
-    while (1);
+   Serial.println("Starting BLE failed!");
+   while (1);
   }
 
   // Set the device name and local name

@@ -194,7 +194,7 @@ void TIMERF_init();
 // #define _TIMERINTERRUPT_LOGLEVEL_ 0
 
 #define HW_TIMER_INTERVAL_100us     100L  // in micro-seconds
-#define TIMER_INTERVAL_500ms        500L  // in milli-seconds
+#define TIMER_INTERVAL_500ms        100L  // in milli-seconds
 
 NRF52_MBED_Timer ITimer(NRF_TIMER_3);
 NRF52_MBED_ISRTimer ISR_Timer;
@@ -234,6 +234,9 @@ void setup() {
   TIMERF_init();
   audioSetup();
   actuatorSetup();
+  ///////////////////
+  //     OLED      //
+  ///////////////////
   #if 0
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -249,7 +252,7 @@ void setup() {
   display.clearDisplay();
   #endif
 
-  musicFlag = true;
+  //musicFlag = true;
 }
 
 void loop() {
@@ -263,11 +266,11 @@ void loop() {
   currMillis = millis();
   float angle = getAngle( & pid, sampleSec);
   balance( & pid, angle, sampleSec);
-  Serial.println(angle);
+  //Serial.println(angle);
   processSerialInput( & pid);
 
   //lights and OLED
-  checkLights();
+  //checkLights();
   #if 0
   float d_angle = getDesiredAngle( & pid);
 
@@ -300,7 +303,7 @@ void loop() {
       currMillis = millis();
       float angle = getAngle( & pid, sampleSec);
       balance( & pid, angle, sampleSec);
-      Serial.println(angle);
+      //Serial.println(angle);
       processSerialInput( & pid);
 
       // Check if the characteristic was written
@@ -357,7 +360,7 @@ void loop() {
         currMillis = millis();
         float angle = getAngle( & pid, sampleSec);
         balance( & pid, angle, sampleSec);
-        Serial.println(angle);
+        //Serial.println(angle);
         processSerialInput( & pid);
       }
       actuatorLoop("");
