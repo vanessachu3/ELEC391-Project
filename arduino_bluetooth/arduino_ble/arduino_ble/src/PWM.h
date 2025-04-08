@@ -16,7 +16,6 @@
 
 // Function prototypes for PWM control
 void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd);
-void moveRobotCommand(const char* direction, float inputSignal, PID_t *pid);
-void moveRobot(const char* direction, float inputSignal);
+void moveRobot(const char* direction, float inputSignal, bool dlf, bool drt);
 
 #endif

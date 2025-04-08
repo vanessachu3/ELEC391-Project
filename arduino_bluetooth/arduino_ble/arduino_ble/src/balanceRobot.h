@@ -13,7 +13,7 @@
 
 float getAngleSetup();
 float getAngle(PID_t * pid,float gyrSampleRate);
-void PWMfwrd(float scaleFactor);
-void PWMbkwrd(float scaleFactor);
-void balance(PID_t * pid, float currAngle,float sampleSec);
+void PWMfwrd(float scaleFactor, bool dlf, bool drt);
+void PWMbkwrd(float scaleFactor, bool dlf, bool drt);
+void balance(PID_t * pid, float currAngle,float sampleSec, bool dfw, bool dbw, bool dlf, bool drt);
 #endif

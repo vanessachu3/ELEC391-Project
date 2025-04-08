@@ -1,9 +1,13 @@
 #include <PWM.h>
 #include <pid.h>
+#include <Arduino.h>
 
 #define MAXPWM 255
 #define BAUD 115200
 //PID_t pid;
+
+#define SPEED_MODIFIER 0.1;
+#define TURN_VAL 201
 
 void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd) {
     analogWrite(LEFTWHEEL_FWRD,   leftFwd);
@@ -11,52 +15,34 @@ void setMotorPWM(float leftFwd, float leftBkwd, float rightFwd, float rightBkwd)
     analogWrite(RIGHTWHEEL_FWRD,  rightFwd);
     analogWrite(RIGHTWHEEL_BKWRD, rightBkwd);
 }
-void moveRobot(const char* direction, float inputSignal){
+void moveRobot(const char* direction, float inputSignal, bool dlf, bool drt){
     inputSignal = (inputSignal >= 255) ? 255.0 : inputSignal; // Restrict inputSignal to 1.0 max
     float complementSignal = 255.0 - inputSignal;
 
-    if (strcmp(direction, "FORWARD") == 0) {
-        setMotorPWM(255, complementSignal, 255, complementSignal); //slow decay
+    if (strcmp(direction, "BACKWARDS") == 0) {
+        if(drt)
+        {
+            setMotorPWM(TURN_VAL,255,255,TURN_VAL);
+        }
+        else if(dlf)
+        {
+            setMotorPWM(255,TURN_VAL,TURN_VAL,255);
+        }
+        else
+            setMotorPWM(complementSignal, 255, complementSignal, 255); //slow decay
     } 
-    else if (strcmp(direction, "BACKWARDS") == 0) {
-        setMotorPWM(complementSignal, 255, complementSignal, 255); //slow
+    else if (strcmp(direction, "FORWARD") == 0) {
+        if(drt)
+        {
+            setMotorPWM(TURN_VAL,255,255,TURN_VAL);
+        }
+        else if(dlf)
+        {
+            setMotorPWM(255,TURN_VAL,TURN_VAL,255);
+        }
+        else
+        {
+            setMotorPWM(255, complementSignal, 255, complementSignal); //slow
+        }
     } 
-}
-void moveRobotCommand(const char* direction, float inputSignal, PID_t *pid) {
-    inputSignal = (inputSignal >= 255) ? 255.0 : inputSignal; // Restrict inputSignal to 1.0 max
-    float complementSignal = 255.0 - inputSignal;
-
-    if (strcmp(direction, "FORWARD") == 0) {
-        //setMotorPWM(255, complementSignal, 255, complementSignal); //slow decay
-        updateDesiredAngle(pid,-(3+abs(DESIRED_ANGLE)));
-    } 
-    else if (strcmp(direction, "BACKWARDS") == 0) {
-        //setMotorPWM(complementSignal, 255, complementSignal, 255); //slow
-        updateDesiredAngle(pid,3+abs(DESIRED_ANGLE));
-    } 
-    #if 1
-    else if (strcmp(direction, "LEFT") == 0) {
-        setMotorPWM(255, complementSignal*0.5, complementSignal, 255);
-    } 
-    else if (strcmp(direction, "RIGHT") == 0) {
-        setMotorPWM(complementSignal, 255, 255, complementSignal*0.5);
-    } 
-    #endif
-    #if 0
-    else if (strcmp(direction, "FORWARD LEFT") == 0) {
-        setMotorPWM(0.5 * inputSignal, 0, inputSignal, 0);
-    } 
-    else if (strcmp(direction, "FORWARD RIGHT") == 0) {
-        setMotorPWM(inputSignal, 0, 0.5 * inputSignal, 0);
-    } 
-    else if (strcmp(direction, "BACKWARDS LEFT") == 0) {
-        setMotorPWM(0, 0.5 * inputSignal, 0, inputSignal);
-    } 
-    else if (strcmp(direction, "BACKWARDS RIGHT") == 0) {
-        setMotorPWM(0, inputSignal, 0, 0.5 * inputSignal);
-    } 
-    #endif
-
-    // Serial.print("GOING ");
-    // Serial.println(direction);
 }

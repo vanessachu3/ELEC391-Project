@@ -152,7 +152,7 @@ void updatePID(PID_t * pid, double angle, float sampleSec) {
 
   pid -> iTemp += (pid -> e0) * pid -> Ts;
 
-  float maxIntegral = 10.0;
+  float maxIntegral = 12.0;
   pid -> iTemp = constrain(pid -> iTemp, -maxIntegral, maxIntegral);
 
   pid -> iTerm = pid -> ki * pid -> iTemp;
@@ -172,15 +172,10 @@ void updatePID(PID_t * pid, double angle, float sampleSec) {
   pid -> u0 = pid -> pTerm + pid -> iTerm + pid -> dTerm;
 
   // Safety shut-off for large angles
-  if (fabs(pid->angleRead)>46.0) {
+  if (fabs(pid->angleRead)>45.0) {
    pid -> iTemp = 0.0;
    pid -> u0 = 0.0;
   }
-  //else if(angle < pid->desiredAngle + 0.5 && angle > pid->desiredAngle - 0.5)
-  //{
-  //
-  //    pid->u0 = 0.0;
-  //}
 
   // Output saturation
   pid -> u0 = constrain(pid -> u0, MIN_PIDOUT, MAX_PIDOUT);
@@ -213,4 +208,14 @@ void updateDesiredAngleCommmand(PID_t * pid,
 float getOutputPID(PID_t * pid) {
 
   return pid -> u0;
+}
+
+float getKp(PID_t * pid) {
+  return pid -> kp;
+}
+float getKi(PID_t * pid) {
+  return pid -> ki;
+}
+float getKd(PID_t * pid) {
+  return pid -> kd;
 }

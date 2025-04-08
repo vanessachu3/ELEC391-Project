@@ -41,10 +41,10 @@ void updateServoPositions() {
 
 void actuatorLoop(const char* command) {
     // Handle new commands
-    if (strcmp(command, "EXTEND_PLATFORM") == 0) {
+    if (strcmp(command, "SHORTEN_PLATFORM") == 0) {
         platformState = PlatformState::EXTENDING;
     } 
-    else if (strcmp(command, "SHORTEN_PLATFORM") == 0) {
+    else if (strcmp(command, "EXTEND_PLATFORM") == 0) {
         platformState = PlatformState::SHORTENING;
     }
     else if (strcmp(command, "STOP_PLATFORM") == 0) {

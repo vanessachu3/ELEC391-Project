@@ -9,7 +9,7 @@ BLECharacteristic customCharacteristic(
     "00000001-5EC4-4083-81CD-A10B8D5CF6EC", BLERead | BLEWrite | BLENotify, BUFFER_SIZE, false);
 
 void setupBLE() {
-  Serial.begin(9600);
+  Serial.println("BLE setup started...");
   //while (!Serial);
 
   // Initialize the built-in LED to indicate connection status

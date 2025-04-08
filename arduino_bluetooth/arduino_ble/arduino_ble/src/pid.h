@@ -1,17 +1,17 @@
 #ifndef PID_H
 #define PID_H
-#define DESIRED_ANGLE -0.16
+#define DESIRED_ANGLE -0.3 //-1.0
 typedef struct
 {
     // tune these parameters
     float kp =9.0; //9;
-    float ki =63.0; //65;
-    float kd =0.3; //0.2;
+    float ki =120;//110; //65;
+    float kd =0.4; //0.2;
     float Ts = 1.0/99.8; //gyro sample rate
     float e1 = 0.0;
     float e0 = 0.0; 
     float u0  = 0.0; //e[k-1], e[k], u[k]
-    float angleRead=0.0;
+    float angleRead;
     float desiredAngle = DESIRED_ANGLE;
 
     float pTerm = 0.0; // kp * e(t)
@@ -19,7 +19,6 @@ typedef struct
     float dTerm = 0.0; //kd * ( ef[k] - ef[k-1])/Ts
     float iTemp = 0.0;
     float dTemp = 0.0;
-    float filterCoeff = 1;
 } PID_t;
 extern PID_t pid;
 void updatePID(PID_t * pid, double angle,float sampleSec);
@@ -28,4 +27,7 @@ void updateDesiredAngle(PID_t *pid, float angle);
 void processSerialInput(PID_t *pid);
 void updateDesiredAngleCommmand(PID_t *pid, const char* command);
 float getDesiredAngle(PID_t*pid);
+float getKi(PID_t*pid);
+float getKp(PID_t*pid);
+float getKd(PID_t*pid);
 #endif

@@ -194,7 +194,7 @@ void TIMERF_init();
 // #define _TIMERINTERRUPT_LOGLEVEL_ 0
 
 #define HW_TIMER_INTERVAL_100us     100L  // in micro-seconds
-#define TIMER_INTERVAL_500ms        100L  // in milli-seconds
+#define TIMER_INTERVAL        350l  // in milli-seconds
 
 NRF52_MBED_Timer ITimer(NRF_TIMER_3);
 NRF52_MBED_ISRTimer ISR_Timer;
@@ -215,8 +215,8 @@ void TIMERF_init()
     else
         Serial.println("ITimer started...");
 
-    ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigL);
-    ISR_Timer.setInterval(TIMER_INTERVAL_500ms, sigR);
+    ISR_Timer.setInterval(TIMER_INTERVAL, sigL);
+    ISR_Timer.setInterval(TIMER_INTERVAL, sigR);
     //ISR_Timer.setInterval(TIMER_MUSIC_INTERVAL, playNote);
 }
 #endif
@@ -224,10 +224,18 @@ float gyroTs = 0.01;
 float currMillis;
 #define SAMPLEAVG 50
 
+//==========================================================
+// turning variables
+//==========================================================
+bool dfw = false;
+bool dbw = false;
+bool dlf = false;
+bool drt = false;
+
 void setup() {
-  #if 1
+  Serial.begin(9600);
+  delay(200);
   setupBLE();
-  #endif
   gyroTs = getAngleSetup();
   currMillis = millis();
   SIG_init();
@@ -237,7 +245,7 @@ void setup() {
   ///////////////////
   //     OLED      //
   ///////////////////
-  #if 0
+  #if 1
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;); // Don't proceed, loop forever
@@ -253,6 +261,20 @@ void setup() {
   #endif
 
   //musicFlag = true;
+  display.setTextSize(2);             // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE);        // Draw white text
+  display.setCursor(0,0);             // Start at top-left corner
+  float kp = getKp( & pid);
+  float ki = getKi( & pid);
+  float kd = getKd( & pid);
+  display.print(F("Kp: "));
+  display.println(kp);
+  display.print(F("Ki: "));
+  display.println(ki);
+  display.print(F("Kd: "));
+  display.println(kd);
+
+    display.display();
 }
 
 void loop() {
@@ -265,9 +287,9 @@ void loop() {
   float sampleSec = (millis() - currMillis) / 1000.0f;
   currMillis = millis();
   float angle = getAngle( & pid, sampleSec);
-  balance( & pid, angle, sampleSec);
+  balance( & pid, angle, sampleSec, dfw, dbw, dlf, drt);
   //Serial.println(angle);
-  processSerialInput( & pid);
+  //processSerialInput( & pid);
 
   //lights and OLED
   //checkLights();
@@ -302,9 +324,9 @@ void loop() {
       float sampleSec = (millis() - currMillis) / 1000.0f;
       currMillis = millis();
       float angle = getAngle( & pid, sampleSec);
-      balance( & pid, angle, sampleSec);
+      balance( & pid, angle, sampleSec, dfw, dbw, dlf, drt);
       //Serial.println(angle);
-      processSerialInput( & pid);
+      //processSerialInput( & pid);
 
       // Check if the characteristic was written
       if (customCharacteristic.written()) {
@@ -325,9 +347,6 @@ void loop() {
         Serial.println(receivedString);
 
         // Split the received string by the comma
-        
-        //TODO: SCALE SPEED WRT JOYSTICK POSITION
-        moveRobotCommand(receivedString, 0, & pid);
 
         //LEFT/RIGHT/HAZARD SIGNALS
         if (strcmp(receivedString, "LEFT SIGNAL") == 0) {
@@ -339,6 +358,31 @@ void loop() {
           flagR = 1;
         } else if (strcmp(receivedString, "STOP") == 0) {
           sigOff();
+        } else if (strcmp(receivedString, "FORWARD") == 0) {
+          dfw = true;
+          dbw = false;
+          dlf = false;
+          drt = false;
+        } else if (strcmp(receivedString, "BACKWARDS") == 0) {
+          dfw = false;
+          dbw = true;
+          dlf = false;
+          drt = false;
+        } else if (strcmp(receivedString, "LEFT") == 0) {
+          dfw = false;
+          dbw = false;
+          dlf = true;
+          drt = false;
+        } else if (strcmp(receivedString, "RIGHT") == 0) {
+          dfw = false;
+          dbw = false;
+          dlf = false;
+          drt = true;
+        } else {
+          dfw = false;
+          dbw = false;
+          dlf = false;
+          drt = false;
         }
 
         //PLATFROM EXTENSION
@@ -347,9 +391,9 @@ void loop() {
 
         play_music(receivedString);
         //UPDATE ANGLE
-        updateDesiredAngleCommmand( & pid, receivedString);
+        // updateDesiredAngleCommmand( & pid, receivedString);
         // Optionally, respond by updating the characteristic's value
-        customCharacteristic.writeValue("Data received");
+        // customCharacteristic.writeValue("Data received");
       } else {
         ///////////////////
         // BALANCE ROBOT //
@@ -357,16 +401,14 @@ void loop() {
         float sampleSec = (millis() - currMillis) / 1000.0f;
         currMillis = millis();
         float angle = getAngle( & pid, sampleSec);
-        balance( & pid, angle, sampleSec);
-        //Serial.println(angle);
-        processSerialInput( & pid);
+        balance( & pid, angle, sampleSec, dfw, dbw, dlf, drt);
       }
       actuatorLoop("");
       playMusicNonBlocking();
     }
 
-    digitalWrite(LED_BUILTIN, LOW); // Turn off LED when disconnected
-    Serial.println("Disconnected from central.");
+    // digitalWrite(LED_BUILTIN, LOW); // Turn off LED when disconnected
+    // Serial.println("Disconnected from central.");
   }
   #endif
 }

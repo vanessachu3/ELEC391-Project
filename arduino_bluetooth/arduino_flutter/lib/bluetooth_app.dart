@@ -212,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
         );
         _toggleFlashing(command);
         setState(() {
-          _stateMessage = "Command '$command' with distance sent!";
+          _stateMessage = "Command '$command' sent!";
         });
       } catch (e) {
         setState(() {
@@ -396,7 +396,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 foregroundColor: Colors.black,
               ),
               child: const Icon(
-                Icons.arrow_upward,
+                Icons.keyboard_double_arrow_up_rounded,
                 color: Color(0xFFB8860B),
                 size: 40,
               ),
@@ -417,7 +417,54 @@ class _MyHomePageState extends State<MyHomePage> {
                 foregroundColor: Colors.black,
               ),
               child: const Icon(
-                Icons.arrow_downward,
+                Icons.keyboard_double_arrow_down_rounded,
+                color: Color(0xFFB8860B),
+                size: 40,
+              ),
+            ),
+          ),
+        ],
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(width: 20),
+          GestureDetector(
+            onTapDown: (_) {
+              if (_isConnected) {
+                _sendCommand("LEFT");
+              }
+            },
+            onTapUp: (details) => _sendCommand("DEFAULT"),
+            child: ElevatedButton(
+              onPressed: null, // Keep button enabled
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.yellow,
+                foregroundColor: Colors.black,
+              ),
+              child: const Icon(
+                Icons.keyboard_double_arrow_left_rounded,
+                color: Color(0xFFB8860B),
+                size: 40,
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          GestureDetector(
+            onTapDown: (_) {
+              if (_isConnected) {
+                _sendCommand("RIGHT");
+              }
+            },
+            onTapUp: (details) => _sendCommand("DEFAULT"),
+            child: ElevatedButton(
+              onPressed: null, // Keep button enabled
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.yellow,
+                foregroundColor: Colors.black,
+              ),
+              child: const Icon(
+                Icons.keyboard_double_arrow_right_rounded,
                 color: Color(0xFFB8860B),
                 size: 40,
               ),
